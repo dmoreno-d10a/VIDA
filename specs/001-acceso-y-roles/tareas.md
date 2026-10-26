@@ -135,7 +135,7 @@
   - Terminado cuando: el menú del RO no contiene la administración de usuarios, el del Administrador sí, y ambos muestran identificación y rol en cualquier pantalla.
   - Cubre: HU-2, HU-4, RF-04, RF-08
 
-- [ ] **T030** [P] Implementar `frontend/app/(privado)/inicio/page.tsx` con las opciones del rol del usuario y la opción de cerrar sesión.
+- [x] **T030** [P] Implementar `frontend/app/(privado)/inicio/page.tsx` con las opciones del rol del usuario y la opción de cerrar sesión.
   - Terminado cuando: tras identificarse, cada rol llega a esta pantalla y ve solo sus opciones; cerrar sesión obliga a identificarse de nuevo.
   - Cubre: HU-1, HU-2
 
