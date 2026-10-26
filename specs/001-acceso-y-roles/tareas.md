@@ -49,7 +49,7 @@
   - Terminado cuando: las pruebas existen, fallan, y la respuesta esperada es **idéntica** para identificación inexistente, contraseña incorrecta, cuenta revocada y cuenta bloqueada (no permite distinguirlas entre sí), con la única excepción del usuario de credenciales correctas y sin rol, que recibe la indicación de solicitar autorización (RF-06, RF-09).
   - Cubre: HU-1, HU-3, RF-09, RF-22
 
-- [ ] **T009** [P] Escribir `backend/tests/test_autorizacion.py` con la respuesta esperada de: petición sin sesión, petición con sesión válida, y petición de un RO a cada ruta de administración, incluido el acceso directo sin pasar por el menú.
+- [x] **T009** [P] Escribir `backend/tests/test_autorizacion.py` con la respuesta esperada de: petición sin sesión, petición con sesión válida, y petición de un RO a cada ruta de administración, incluido el acceso directo sin pasar por el menú.
   - Terminado cuando: las pruebas existen, fallan, y la respuesta esperada para el RO sobre rutas de administración no incluye ningún dato de usuarios.
   - Cubre: HU-2, RF-01, RF-04, RF-05, RF-06
 
