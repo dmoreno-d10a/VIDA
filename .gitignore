@@ -1,0 +1,25 @@
+# Secretos
+.env
+.env.*
+!.env.example
+
+# Archivos cargados y documentos generados en local (pueden contener datos reales)
+uploads/
+generados/
+
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# Sistema / editores / dependencias
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+build/
+target/
+~$*
