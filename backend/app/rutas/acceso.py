@@ -79,6 +79,7 @@ def entrar(
         )
 
     sesion = sesiones.crear_sesion(sesion_bd, usuario)
+    sesion_bd.commit()
     respuesta.set_cookie(
         key=COOKIE_SESION,
         value=sesion.id,
@@ -98,6 +99,7 @@ def salir(
 ) -> None:
     """Cierra la sesión y borra la cookie (HU-1)."""
     sesiones.terminar_sesiones_de_usuario(sesion_bd, usuario.id)
+    sesion_bd.commit()
     respuesta.delete_cookie(COOKIE_SESION, path="/")
 
 
@@ -139,7 +141,7 @@ def _contar_intento_fallido(usuario: Usuario, sesion_bd: Session) -> None:
         # cuenta dispone otra vez de todos sus intentos.
         usuario.intentos_fallidos = 0
 
-    sesion_bd.flush()
+    sesion_bd.commit()
 
 
 def _reiniciar_intentos(usuario: Usuario, sesion_bd: Session) -> None:
@@ -149,4 +151,4 @@ def _reiniciar_intentos(usuario: Usuario, sesion_bd: Session) -> None:
 
     usuario.intentos_fallidos = 0
     usuario.bloqueado_hasta = None
-    sesion_bd.flush()
+    sesion_bd.commit()

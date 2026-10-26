@@ -71,7 +71,15 @@ def sesion_bd(motor_pruebas: Engine) -> Iterator[Session]:
     """Sesión dentro de una transacción que se revierte al terminar la prueba."""
     conexion = motor_pruebas.connect()
     transaccion = conexion.begin()
-    sesion = sessionmaker(bind=conexion, autoflush=False, expire_on_commit=False)()
+    # join_transaction_mode="create_savepoint": los commit() de las rutas se
+    # vuelven savepoints, así que la transacción externa sigue pudiendo
+    # revertir todo lo que hizo la prueba.
+    sesion = sessionmaker(
+        bind=conexion,
+        autoflush=False,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )()
     try:
         yield sesion
     finally:

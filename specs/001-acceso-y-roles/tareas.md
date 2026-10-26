@@ -103,7 +103,7 @@
   - Terminado cuando: pasa el caso de bloqueo de T008, el bloqueo se levanta solo al pasar el tiempo configurado, y cambiar `VIDA_INTENTOS_MAX` cambia el comportamiento sin tocar código.
   - Cubre: RF-22, RF-23
 
-- [ ] **T022** Implementar en `backend/app/rutas/usuarios.py` el listado y la creación de usuarios, solo para el rol Administrador, rechazando identificaciones repetidas y aplicando la política a la contraseña inicial.
+- [x] **T022** Implementar en `backend/app/rutas/usuarios.py` el listado y la creación de usuarios, solo para el rol Administrador, rechazando identificaciones repetidas y aplicando la política a la contraseña inicial.
   - Terminado cuando: pasan los casos de listar y crear de T010, y el listado muestra identificación, rol y estado del acceso, sin contraseñas.
   - Cubre: HU-5, RF-11, RF-12, RF-20
 
