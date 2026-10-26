@@ -149,9 +149,10 @@
 
 ## Fase 4 — Validación
 
-- [ ] **T033** Ejecutar el caso de referencia y registrar el puntaje: recorrido completo del **RO** (entra, ve solo sus opciones, cambia su contraseña, no alcanza la administración ni por menú ni por acceso directo).
+- [x] **T033** Ejecutar el caso de referencia y registrar el puntaje: recorrido completo del **RO** (entra, ve solo sus opciones, cambia su contraseña, no alcanza la administración ni por menú ni por acceso directo).
   - Terminado cuando: el recorrido pasa completo y queda registrado en `tareas.md` cuántos de sus criterios de aceptación se cumplieron, sobre el total.
   - Cubre: HU-1, HU-2, HU-6
+  - **Puntaje: 16 de 16** (2026-10-26). Verificado contra la plataforma corriendo, pasando por el front: entra y es reconocido como RO; la cookie es `httpOnly`; ve su identificación y rol en pantalla; su menú no ofrece administrar usuarios; el acceso directo a `/usuarios` y a la creación responde 403 sin filtrar ningún dato; el cambio de contraseña rechaza la actual equivocada (401) y la que incumple la política (422), acepta la válida (204), la anterior deja de servir y la nueva sirve; al cerrar sesión la cookie anterior ya no vale. Además, las 4 pruebas e2e de T012 pasan en Chromium.
 
 - [ ] **T034** Ejecutar el caso de generalización y registrar el puntaje: recorrido del **Administrador** más los tres casos que no son un usuario normal (autenticado sin rol, acceso revocado, persona sin sesión).
   - Terminado cuando: los cuatro pasan completos, quedan registrados igual que T033, y ninguno usa el caso de referencia del proyecto (Art. VIII).
