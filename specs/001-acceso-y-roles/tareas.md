@@ -45,7 +45,7 @@
   - Terminado cuando: los cinco usuarios están definidos, ninguno corresponde a una persona real, y cubren los cinco casos de acceso de la sección 8 de la spec.
   - Cubre: Art. VIII, Art. X.3
 
-- [ ] **T008** [P] Escribir `backend/tests/test_acceso.py` con la respuesta esperada de: entrar con credenciales correctas, entrar con credenciales incorrectas, entrar sin rol asignado, entrar con acceso revocado, cerrar sesión, sesión vencida, y bloqueo tras los intentos fallidos configurados.
+- [x] **T008** [P] Escribir `backend/tests/test_acceso.py` con la respuesta esperada de: entrar con credenciales correctas, entrar con credenciales incorrectas, entrar sin rol asignado, entrar con acceso revocado, cerrar sesión, sesión vencida, y bloqueo tras los intentos fallidos configurados.
   - Terminado cuando: las pruebas existen, fallan, y la respuesta esperada es **idéntica** para identificación inexistente, contraseña incorrecta, cuenta revocada y cuenta bloqueada (no permite distinguirlas entre sí), con la única excepción del usuario de credenciales correctas y sin rol, que recibe la indicación de solicitar autorización (RF-06, RF-09).
   - Cubre: HU-1, HU-3, RF-09, RF-22
 
