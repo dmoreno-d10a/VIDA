@@ -53,7 +53,7 @@
   - Terminado cuando: las pruebas existen, fallan, y la respuesta esperada para el RO sobre rutas de administración no incluye ningún dato de usuarios.
   - Cubre: HU-2, RF-01, RF-04, RF-05, RF-06
 
-- [ ] **T010** [P] Escribir `backend/tests/test_usuarios.py` con la respuesta esperada de las seis acciones de administración: listar, crear (incluida identificación repetida), cambiar rol, restablecer contraseña, revocar, eliminar, y el intento de dejar la plataforma sin Administrador activo —que debe fallar siempre, incluso sobre la propia cuenta—.
+- [x] **T010** [P] Escribir `backend/tests/test_usuarios.py` con la respuesta esperada de las seis acciones de administración: listar, crear (incluida identificación repetida), cambiar rol, restablecer contraseña, revocar, eliminar, y el intento de dejar la plataforma sin Administrador activo —que debe fallar siempre, incluso sobre la propia cuenta—.
   - Terminado cuando: las pruebas existen y fallan, con un caso por cada acción y uno por cada forma de quedarse sin Administrador (revocar, eliminar y cambiar de rol al último).
   - Cubre: HU-5, RF-11, RF-12, RF-13, RF-14, RF-15, RF-16
 
