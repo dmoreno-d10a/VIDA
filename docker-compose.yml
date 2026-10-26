@@ -11,7 +11,9 @@
 services:
   bd:
     image: postgres:16-alpine
-    container_name: vida-bd
+    # Sin container_name fijo a proposito: con uno, un segundo clon del
+    # proyecto adopta en silencio el contenedor y la base del primero.
+    # Compose nombra el contenedor y el volumen por proyecto.
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${VIDA_BD_NOMBRE:-vida}
