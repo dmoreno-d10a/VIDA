@@ -81,6 +81,8 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 - **Dado** un usuario autenticado, **cuando** cambia su contraseña indicando la actual y la nueva, **entonces** el sistema la actualiza y en adelante solo sirve la nueva.
 - **Dado** un usuario autenticado, **cuando** intenta cambiar su contraseña sin acertar la actual, **entonces** el sistema no la cambia y le indica que no pudo validarse.
 - **Dado** un usuario que nunca cambió la contraseña que le asignó el Administrador, **cuando** entra a la plataforma, **entonces** el sistema lo deja trabajar normalmente: cambiarla es su decisión, no una obligación.
+- **Dado** un usuario autenticado, **cuando** intenta fijar una contraseña que no cumple la política vigente, **entonces** el sistema no la acepta y le indica qué regla incumplió.
+- **Dado** un usuario autenticado, **cuando** intenta fijar como nueva la misma contraseña que tiene, **entonces** el sistema no la acepta.
 
 ## 4. Requerimientos funcionales
 
@@ -105,6 +107,10 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 | RF-17 | El sistema debe permitir a cada usuario **cambiar su propia contraseña** acreditando la actual. Cambiarla es opcional: no se obliga al usuario a hacerlo. |
 | RF-18 | El sistema debe contar con un **Administrador inicial** desde la puesta en marcha de la plataforma, creado fuera de sus pantallas, sin que ninguna credencial quede en el repositorio (Art. X). |
 | RF-19 | El sistema no debe guardar ni mostrar nunca las contraseñas de los usuarios en forma legible, a nadie, incluido el Administrador. |
+| RF-20 | El sistema debe exigir que toda contraseña —inicial, cambiada o restablecida— cumpla la política vigente: mínimo **12** caracteres, máximo **64**, sin exigir combinaciones obligatorias de tipos de carácter, y rechazando las contraseñas de uso común y las que contengan la identificación del usuario. Al cambiarla o restablecerla, no debe aceptarse la inmediatamente anterior. |
+| RF-21 | El sistema no debe vencer las contraseñas por tiempo: solo cambian por decisión del usuario (RF-17) o por restablecimiento del Administrador (RF-14). |
+| RF-22 | El sistema debe bloquear temporalmente el acceso de una cuenta tras **5** intentos fallidos seguidos, durante **15** minutos, informándolo sin revelar si el usuario existe. |
+| RF-23 | Todos los valores de la política de contraseñas y del bloqueo por intentos fallidos (RF-20 a RF-22) deben ser configuración: cambiarlos no debe requerir cambios en el código. |
 
 ## 5. Entradas y salidas
 
@@ -132,6 +138,8 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 - **Último Administrador activo:** no se puede revocar, eliminar ni cambiar de rol, aunque sea el propio Administrador quien lo intente sobre su cuenta (RF-16).
 - **Contraseña inicial que el usuario nunca cambia:** sigue sirviendo; el sistema no lo obliga a cambiarla (RF-17).
 - **Cambio de contraseña con la actual equivocada:** no se cambia y se informa sin más detalle (HU-6).
+- **Contraseña que no cumple la política:** se rechaza indicando la regla incumplida, tanto si la fija el usuario como si la define el Administrador al crear la cuenta o al restablecerla (RF-20).
+- **Intentos fallidos repetidos sobre una cuenta:** tras cinco seguidos, la cuenta queda bloqueada quince minutos; el mensaje no revela si el usuario existe ni si está bloqueado por esta causa (RF-22). El bloqueo se levanta por tiempo, sin intervención del Administrador.
 - **Usuario que olvidó su contraseña:** la única vía prevista es que el Administrador la restablezca (RF-14); no hay recuperación autónoma (ver sección 7).
 - **Servicio de acceso no disponible:** nadie entra. El sistema informa que el acceso no está disponible en ese momento y no concede acceso parcial ni rol por defecto.
 
@@ -144,6 +152,8 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 - Roles adicionales, permisos por usuario, grupos o jerarquías: solo existen RO y Administrador (RF-02).
 - **Recuperación autónoma de contraseña** por parte del usuario (por correo o preguntas de seguridad): quien la olvide depende del Administrador.
 - **Autenticación con la identidad corporativa de VortexBird** o con cualquier proveedor externo: la plataforma administra sus propias cuentas (RF-10).
+- **Vencimiento periódico de contraseñas** y exigencia de cambio al primer ingreso (RF-21, RF-17).
+- **Segundo factor de autenticación** y bloqueo permanente de cuentas por intentos fallidos: el bloqueo es temporal y se levanta por tiempo (RF-22).
 - **Registro de auditoría** de accesos y cambios de rol: no se requiere por ahora. Se podrá agregar más adelante sin rehacer lo que define esta spec.
 - La **retención y eliminación de la información de acceso**, pendiente abierto del Artículo X de la constitución.
 
@@ -155,14 +165,15 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 - Las **seis acciones de la administración de usuarios** quedan verificadas: crear, cambiar rol, restablecer contraseña, revocar acceso, eliminar e intentar dejar la plataforma sin Administrador (esta última debe fallar siempre).
 - **100 % de las negaciones de acceso** se informan sin revelar si el usuario existe ni cuál dato falló.
 - **0 contraseñas legibles** en pantallas, listados o registros, para cualquier rol.
-- Cambiar el rol de un usuario y cambiar la duración de la sesión se logran **sin modificar código**.
+- **0 contraseñas aceptadas** que incumplan la política vigente, verificado en los tres puntos donde se fija una: creación del usuario, cambio por el propio usuario y restablecimiento por el Administrador.
+- Cambiar el rol de un usuario, la duración de la sesión y cualquier valor de la política de contraseñas o del bloqueo por intentos fallidos se logran **sin modificar código**.
 
 ## 9. Pendientes y preguntas abiertas
 
 > Todo lo que no se sabe se marca aquí como `[NECESITA ACLARACIÓN: ...]`. La spec no pasa a planificación con aclaraciones abiertas que afecten el alcance.
 
 - **Sin aclaraciones abiertas que afecten el alcance.** Las tres marcas iniciales quedaron resueltas: ver *Registro de aclaraciones*.
-- **PENDIENTE — política de contraseñas** (longitud mínima y demás exigencias al crearlas o cambiarlas). No se define aquí y no se inventa ningún valor. Debe quedar como configuración, no fija en el código, y definirse antes de implementar el cambio y el restablecimiento de contraseña. No cambia el alcance de esta funcionalidad.
+- **Política de contraseñas: definida** (RF-20 a RF-23), con los valores recomendados y aprobados el 2026-10-25. Todos son configuración, de modo que ajustarlos no exige tocar código.
 - **PENDIENTE (constitución, Art. X.4)** — tiempo de retención y eliminación de los archivos que cargan los RO. Fuera del alcance de esta spec; se registra porque toca la misma información de acceso.
 
 ## 10. Verificación contra la constitución
@@ -184,3 +195,4 @@ Esta funcionalidad es la primera del mapa porque todas las demás dependen de el
 | 2026-10-25 | En esa misma respuesta se mencionó "crear la opción de documentar con su respectivo formato". ¿Entra en la 001? | No: es la funcionalidad 002 del mapa y se especifica aparte. La 001 solo define que esa opción será exclusiva del Administrador. |
 | 2026-10-25 | ¿Qué puede hacer el usuario con la contraseña que le asignó el Administrador? | Cambiarla cuando quiera, sin obligación de hacerlo al primer ingreso. (RF-17) |
 | 2026-10-25 | ¿Cómo entra el primer Administrador, si solo un Administrador puede crear usuarios? | Se crea al instalar la plataforma, fuera de sus pantallas. (RF-18) |
+| 2026-10-25 | ¿Cuál es la política de contraseñas? | Se adopta la recomendación alineada con NIST SP 800-63B: mínimo 12 y máximo 64 caracteres, sin composición obligatoria, rechazando contraseñas comunes y las que contengan la identificación del usuario, sin repetir la anterior, sin vencimiento periódico, y con bloqueo temporal de 15 minutos tras 5 intentos fallidos. Todo configurable. (RF-20 a RF-23) |
