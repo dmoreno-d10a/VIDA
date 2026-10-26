@@ -58,6 +58,7 @@ vida/
 ├── .claude/commands/      # Comandos /sdd-* del flujo
 ├── sdd/
 │   ├── constitucion.md    # Principios no negociables (v1.0.0)
+│   ├── mapa-funcionalidades.md  # Funcionalidades del módulo de documentación (v1.0)
 │   └── plantillas/        # spec.md, plan.md, tareas.md
 ├── specs/                 # Una carpeta por especificación
 └── scripts/               # nueva-spec.sh
@@ -66,5 +67,5 @@ vida/
 ## Estado
 
 - [x] Constitución v1.0.0
-- [ ] Mapa de funcionalidades
+- [x] Mapa de funcionalidades
 - [ ] Primera especificación
