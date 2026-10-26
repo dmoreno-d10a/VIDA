@@ -75,7 +75,7 @@
   - Terminado cuando: el modelo existe y permite borrar todas las sesiones de un usuario en una operación.
   - Cubre: RF-07, RF-15
 
-- [ ] **T015** Crear la migración inicial de Alembic con las tablas de usuario y sesión.
+- [x] **T015** Crear la migración inicial de Alembic con las tablas de usuario y sesión.
   - Terminado cuando: `alembic upgrade head` crea el esquema desde cero sobre una base vacía, y `alembic downgrade` lo revierte.
   - Cubre: RF-10
 
