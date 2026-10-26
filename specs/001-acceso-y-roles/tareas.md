@@ -29,7 +29,7 @@
   - Terminado cuando: arrancar sin `VIDA_BD_URL` falla con un mensaje claro en español, y cambiar `VIDA_SESION_MINUTOS` o `VIDA_CONTRASENA_MIN` por entorno cambia el valor leído, sin tocar código.
   - Cubre: RF-07, RF-20, RF-22, RF-23
 
-- [ ] **T005** Implementar `backend/app/bd.py` (conexión y sesión de base de datos) e inicializar Alembic con `alembic.ini` y su entorno.
+- [x] **T005** Implementar `backend/app/bd.py` (conexión y sesión de base de datos) e inicializar Alembic con `alembic.ini` y su entorno.
   - Terminado cuando: `alembic current` responde contra la base de datos de desarrollo sin error.
   - Cubre: RF-10
 
