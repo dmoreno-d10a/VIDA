@@ -21,7 +21,7 @@
   - Terminado cuando: el backend arranca localmente y responde a esa ruta.
   - Cubre: Art. IV
 
-- [ ] **T003** [P] Crear el esqueleto del front: `frontend/package.json`, `frontend/app/layout.tsx` con el idioma del documento en español y una página mínima.
+- [x] **T003** [P] Crear el esqueleto del front: `frontend/package.json`, `frontend/app/layout.tsx` con el idioma del documento en español y una página mínima.
   - Terminado cuando: el front arranca localmente, muestra esa página y el documento declara `lang="es"`.
   - Cubre: Art. XII
 
