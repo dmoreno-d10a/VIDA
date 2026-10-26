@@ -57,7 +57,7 @@
   - Terminado cuando: las pruebas existen y fallan, con un caso por cada acción y uno por cada forma de quedarse sin Administrador (revocar, eliminar y cambiar de rol al último).
   - Cubre: HU-5, RF-11, RF-12, RF-13, RF-14, RF-15, RF-16
 
-- [ ] **T011** [P] Escribir `backend/tests/test_contrasenas.py` con la respuesta esperada de la política en los tres puntos donde se fija una contraseña (creación por el Administrador, cambio por el usuario, restablecimiento): longitud mínima y máxima, sin composición obligatoria, rechazo de contraseñas comunes y de las que contienen la identificación, rechazo de la anterior, cambio sin acertar la actual, y ausencia de vencimiento por tiempo.
+- [x] **T011** [P] Escribir `backend/tests/test_contrasenas.py` con la respuesta esperada de la política en los tres puntos donde se fija una contraseña (creación por el Administrador, cambio por el usuario, restablecimiento): longitud mínima y máxima, sin composición obligatoria, rechazo de contraseñas comunes y de las que contienen la identificación, rechazo de la anterior, cambio sin acertar la actual, y ausencia de vencimiento por tiempo.
   - Terminado cuando: las pruebas existen, fallan, incluyen un caso que verifica que ninguna respuesta ni registro devuelve la contraseña, y un caso que cambia los límites por configuración y comprueba que la validación los sigue.
   - Cubre: HU-6, RF-17, RF-19, RF-20, RF-21, RF-23
 
