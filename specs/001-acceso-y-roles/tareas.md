@@ -115,7 +115,7 @@
   - Terminado cuando: pasan los tres casos de T010 correspondientes, cada uno con un mensaje en español que explica el motivo.
   - Cubre: RF-16
 
-- [ ] **T025** Implementar `backend/app/rutas/perfil.py`: cambio de la propia contraseña acreditando la actual, sin obligación de cambiarla y sin vencimiento por tiempo.
+- [x] **T025** Implementar `backend/app/rutas/perfil.py`: cambio de la propia contraseña acreditando la actual, sin obligación de cambiarla y sin vencimiento por tiempo.
   - Terminado cuando: pasan los casos de T011 que dependen de rutas, y un usuario que nunca cambia su contraseña inicial sigue entrando sin interrupción.
   - Cubre: HU-6, RF-17, RF-21
 
