@@ -185,7 +185,7 @@
   - **Resultado (2026-10-26): verificado con un clon limpio.** Se clonó el repositorio en un directorio aparte y se siguieron los cinco pasos del `README` tal como están escritos: configurar `.env`, levantar PostgreSQL, instalar el backend y migrar, crear el Administrador inicial y arrancar. Después se entró a la plataforma con ese Administrador, se creó un RO desde la administración y ese RO entró. Las 76 pruebas de `pytest` pasan en el clon siguiendo el comando documentado.
   - **Defecto encontrado y corregido durante esta prueba:** `docker-compose.yml` fijaba `container_name: vida-bd`, así que un segundo clon del proyecto **adoptaba en silencio el contenedor y la base de datos del primero** en vez de crear los suyos. Se quitó el nombre fijo: ahora Compose nombra contenedor y volumen por proyecto. Lo detectó precisamente esta prueba de clon limpio.
 
-- [ ] **T039** Abrir el Pull Request hacia `main` con la checklist obligatoria de `CONTRIBUTING.md` completa.
+- [x] **T039** Abrir el Pull Request hacia `main` con la checklist obligatoria de `CONTRIBUTING.md` completa.
   - Terminado cuando: el PR está abierto, todas las tareas de este archivo están en `[x]`, y los seis puntos de la checklist están marcados y son verdaderos.
   - Cubre: Art. XI
 
