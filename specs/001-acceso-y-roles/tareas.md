@@ -79,7 +79,7 @@
   - Terminado cuando: `alembic upgrade head` crea el esquema desde cero sobre una base vacía, y `alembic downgrade` lo revierte.
   - Cubre: RF-10
 
-- [ ] **T016** Implementar `backend/app/seguridad/contrasena.py`: hash y verificación con Argon2id, y validación de la política vigente leída de configuración.
+- [x] **T016** Implementar `backend/app/seguridad/contrasena.py`: hash y verificación con Argon2id, y validación de la política vigente leída de configuración.
   - Terminado cuando: pasan las pruebas de T011 que no dependen de rutas, y el hash de una misma contraseña es distinto en dos cálculos.
   - Cubre: RF-19, RF-20, RF-23
 
