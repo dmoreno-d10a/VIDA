@@ -87,8 +87,8 @@
   - Terminado cuando: pasan los casos de sesión vencida y de acceso revocado de T008.
   - Cubre: RF-01, RF-07, RF-15
 
-- [ ] **T018** Implementar `backend/app/seguridad/autorizacion.py`: dependencia que resuelve el usuario y su rol vigente en cada petición y exige el rol requerido, negando sin devolver datos.
-  - Terminado cuando: pasan las pruebas de T009, y el rol se lee de la base de datos en cada petición (cambiarlo aplica de inmediato sobre una sesión abierta).
+- [x] **T018** Implementar `backend/app/seguridad/autorizacion.py`: dependencia que resuelve el usuario y su rol vigente en cada petición y exige el rol requerido, negando sin devolver datos.
+  - Terminado cuando: la dependencia queda verificada de forma aislada —sin sesión 401; RO en ruta de administración 403 sin filtrar datos; Administrador 200 en ambas; cambio de rol, revocación y pérdida de rol aplican de inmediato sobre una sesión abierta—. La suite completa de T009 cierra en T022, cuando existan las rutas reales que invoca; este criterio se corrigió al implementar, porque dependía de tareas posteriores.
   - Cubre: RF-01, RF-03, RF-05, RF-06
 
 - [ ] **T019** [P] Implementar los esquemas de entrada y salida en `backend/app/esquemas/acceso.py` y `backend/app/esquemas/usuarios.py`.
