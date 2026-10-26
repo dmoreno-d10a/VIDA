@@ -166,9 +166,10 @@
   - **Defecto 1 encontrado y corregido:** `/administracion/usuarios` respondía **200 a un rol RO**. No filtraba datos porque el backend los negaba, pero el RO veía el cascarón de la pantalla —título y formulario de crear usuario—, contra el criterio de "0 opciones de administración visibles o alcanzables". Se agregó `app/(privado)/administracion/layout.tsx`, que consulta el rol al backend y redirige a `/inicio` antes de renderizar nada. Ahora responde 307.
   - **Defecto 2 encontrado y corregido:** `/docs`, `/redoc` y `/openapi.json` del backend respondían **sin sesión**, exponiendo la superficie completa de la API, contra RF-01. Quedaron apagadas por omisión y encendibles solo por configuración (`VIDA_DOCS_API`) para desarrollo. Ahora responden 404.
 
-- [ ] **T036** Verificar que no haya ninguna contraseña legible ni ningún secreto: revisar respuestas, registros de la aplicación y el diff completo de la rama.
+- [x] **T036** Verificar que no haya ninguna contraseña legible ni ningún secreto: revisar respuestas, registros de la aplicación y el diff completo de la rama.
   - Terminado cuando: ninguna respuesta ni registro contiene una contraseña, el diff no contiene credenciales, keys ni tokens, y `.env` no está versionado.
   - Cubre: RF-19, Art. X.2
+  - **Resultado (2026-10-26): limpio.** Ninguna respuesta de `/acceso/entrar`, `/acceso/sesion-actual` ni `/usuarios` contiene contraseña ni hash, y el error de validación no devuelve lo enviado. Los registros de la aplicación no contienen ninguna contraseña. El diff de la rama frente a `main` (61 archivos) no trae credenciales: las coincidencias de búsqueda son prosa y comentarios, `secrets.token_hex` de la librería estándar, y la entrada `secret` de la lista de contraseñas comunes. Las contraseñas de los usuarios ficticios aparecen solo en `backend/tests/datos_ficticios.py` y `frontend/e2e/visibilidad-por-rol.spec.ts`. La contraseña del Administrador inicial no aparece en ningún archivo. `.env` no está versionado ni aparece en el diff.
 
 - [ ] **T037** Verificar que no haya datos inventados (Art. II): que el sistema no asigne rol por defecto, no deduzca el rol de la identificación ni de ningún otro dato, y niegue el acceso a quien no tiene rol.
   - Terminado cuando: un usuario creado sin rol no entra, y no existe en el código ningún valor de rol asumido por omisión.
