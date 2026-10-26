@@ -89,3 +89,37 @@ body {
   list-style: none;
   padding: 0;
 }
+
+/* --- Administración de usuarios --- */
+.usuarios table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.usuarios th,
+.usuarios td {
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+  vertical-align: middle;
+}
+
+.usuarios .acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.usuarios form.crear {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+}
+
+.aviso {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 3px solid #1b6e3c;
+  background: rgba(27, 110, 60, 0.08);
+}

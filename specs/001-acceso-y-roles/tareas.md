@@ -139,7 +139,7 @@
   - Terminado cuando: tras identificarse, cada rol llega a esta pantalla y ve solo sus opciones; cerrar sesión obliga a identificarse de nuevo.
   - Cubre: HU-1, HU-2
 
-- [ ] **T031** Implementar `frontend/app/(privado)/administracion/usuarios/page.tsx` con el listado y las seis acciones, incluida la advertencia cuando una acción dejaría la plataforma sin Administrador.
+- [x] **T031** Implementar `frontend/app/(privado)/administracion/usuarios/page.tsx` con el listado y las seis acciones, incluida la advertencia cuando una acción dejaría la plataforma sin Administrador.
   - Terminado cuando: un Administrador completa las seis acciones desde la pantalla, y la que dejaría la plataforma sin Administrador se informa sin ejecutarse.
   - Cubre: HU-5, RF-11 a RF-16
 
