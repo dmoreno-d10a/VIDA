@@ -171,9 +171,11 @@
   - Cubre: RF-19, Art. X.2
   - **Resultado (2026-10-26): limpio.** Ninguna respuesta de `/acceso/entrar`, `/acceso/sesion-actual` ni `/usuarios` contiene contraseña ni hash, y el error de validación no devuelve lo enviado. Los registros de la aplicación no contienen ninguna contraseña. El diff de la rama frente a `main` (61 archivos) no trae credenciales: las coincidencias de búsqueda son prosa y comentarios, `secrets.token_hex` de la librería estándar, y la entrada `secret` de la lista de contraseñas comunes. Las contraseñas de los usuarios ficticios aparecen solo en `backend/tests/datos_ficticios.py` y `frontend/e2e/visibilidad-por-rol.spec.ts`. La contraseña del Administrador inicial no aparece en ningún archivo. `.env` no está versionado ni aparece en el diff.
 
-- [ ] **T037** Verificar que no haya datos inventados (Art. II): que el sistema no asigne rol por defecto, no deduzca el rol de la identificación ni de ningún otro dato, y niegue el acceso a quien no tiene rol.
+- [x] **T037** Verificar que no haya datos inventados (Art. II): que el sistema no asigne rol por defecto, no deduzca el rol de la identificación ni de ningún otro dato, y niegue el acceso a quien no tiene rol.
   - Terminado cuando: un usuario creado sin rol no entra, y no existe en el código ningún valor de rol asumido por omisión.
   - Cubre: RF-06, Art. II
+  - **Resultado (2026-10-26): limpio.** El usuario sin rol recibe 403 con la indicación de solicitar autorización y **no** recibe sesión. En el modelo, `rol` es `nullable=True, default=None`: no hay rol por omisión. Las únicas apariciones de un rol literal en el código de la aplicación son **comparaciones** (`is not Rol.ADMINISTRADOR`, `== Rol.ADMINISTRADOR`), no asignaciones; la única asignación literal está en `scripts/crear_admin.py`, que crea el Administrador inicial a propósito (RF-18). El rol nunca se deduce de la identificación: el único lugar donde ambos se cruzan es el `__repr__` del modelo, que solo los imprime.
+  - **Observación para la revisión:** la API **no permite** crear un usuario sin rol ni dejar a uno sin rol (los tres intentos responden 422, porque el rol es obligatorio al crear y al cambiarlo). Es decir, el estado que RF-06 describe no se puede producir desde la plataforma: la defensa cubre estados de datos que lleguen por otra vía, como una migración futura o una carga manual. Se deja como está —impedir que el Administrador cree usuarios inservibles parece lo correcto—, pero conviene que el responsable del proyecto lo confirme.
 
 ## Fase 5 — Cierre
 
