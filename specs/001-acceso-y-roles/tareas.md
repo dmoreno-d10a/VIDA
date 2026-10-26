@@ -119,7 +119,7 @@
   - Terminado cuando: pasan los casos de T011 que dependen de rutas, y un usuario que nunca cambia su contraseña inicial sigue entrando sin interrupción.
   - Cubre: HU-6, RF-17, RF-21
 
-- [ ] **T026** Implementar `backend/scripts/crear_admin.py`: crea el Administrador inicial tomando la contraseña del entorno o pidiéndola por consola sin mostrarla, y no hace nada si ya existe un Administrador activo.
+- [x] **T026** Implementar `backend/scripts/crear_admin.py`: crea el Administrador inicial tomando la contraseña del entorno o pidiéndola por consola sin mostrarla, y no hace nada si ya existe un Administrador activo.
   - Terminado cuando: sobre una base vacía el comando crea un Administrador que puede entrar; la contraseña no aparece en el código, en el repositorio ni en la salida del comando; y ejecutarlo dos veces no crea un duplicado.
   - Cubre: RF-18, Art. X.2
 
