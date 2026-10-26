@@ -17,7 +17,7 @@
   - Terminado cuando: `docker compose up` levanta PostgreSQL, `git status` no muestra `.env` como archivo nuevo, y `.env.ejemplo` está versionado con valores de ejemplo.
   - Cubre: RF-10, Art. X.2
 
-- [ ] **T002** [P] Crear el esqueleto del backend: `backend/pyproject.toml` con las dependencias (FastAPI, SQLAlchemy, Alembic, Pydantic, argon2-cffi, pytest) y `backend/app/main.py` que arranque y responda en una ruta de salud.
+- [x] **T002** [P] Crear el esqueleto del backend: `backend/pyproject.toml` con las dependencias (FastAPI, SQLAlchemy, Alembic, Pydantic, argon2-cffi, pytest) y `backend/app/main.py` que arranque y responda en una ruta de salud.
   - Terminado cuando: el backend arranca localmente y responde a esa ruta.
   - Cubre: Art. IV
 

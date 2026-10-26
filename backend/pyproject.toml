@@ -1,0 +1,33 @@
+[project]
+name = "vida-backend"
+version = "0.1.0"
+description = "Backend de V.I.D.A. — Vortexbird Intelligent Documentation Assistant"
+requires-python = ">=3.12"
+
+# Toda la lógica y las credenciales viven en esta capa (Art. IV de la constitución).
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "psycopg[binary]>=3.2",
+    "argon2-cffi>=23.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.28",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
