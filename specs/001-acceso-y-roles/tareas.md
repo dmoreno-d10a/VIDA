@@ -123,7 +123,7 @@
   - Terminado cuando: sobre una base vacía el comando crea un Administrador que puede entrar; la contraseña no aparece en el código, en el repositorio ni en la salida del comando; y ejecutarlo dos veces no crea un duplicado.
   - Cubre: RF-18, Art. X.2
 
-- [ ] **T027** Implementar `frontend/lib/api.ts` (único punto de llamada al backend, con la cookie de sesión) y `frontend/middleware.ts`, que redirige a la pantalla de acceso cualquier ruta privada sin cookie, sin renderizar nada.
+- [x] **T027** Implementar `frontend/lib/api.ts` (único punto de llamada al backend, con la cookie de sesión) y `frontend/middleware.ts`, que redirige a la pantalla de acceso cualquier ruta privada sin cookie, sin renderizar nada.
   - Terminado cuando: abrir una ruta privada sin sesión no muestra ningún dato ni esqueleto de la plataforma, y `api.ts` no contiene ninguna decisión de permisos.
   - Cubre: RF-01, HU-3, Art. IV
 
