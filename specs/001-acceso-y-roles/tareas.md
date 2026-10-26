@@ -67,7 +67,7 @@
 
 ## Fase 3 — Construcción
 
-- [ ] **T013** Implementar `backend/app/modelos/usuario.py`: identificación única, rol (`RO` / `ADMINISTRADOR`), hash de contraseña, estado del acceso, contador de intentos fallidos, bloqueo vigente y fechas de creación y actualización.
+- [x] **T013** Implementar `backend/app/modelos/usuario.py`: identificación única, rol (`RO` / `ADMINISTRADOR`), hash de contraseña, estado del acceso, contador de intentos fallidos, bloqueo vigente y fechas de creación y actualización.
   - Terminado cuando: el modelo existe, solo admite los dos roles, y no tiene ningún campo que guarde la contraseña en forma legible.
   - Cubre: RF-02, RF-03, RF-10, RF-19
 

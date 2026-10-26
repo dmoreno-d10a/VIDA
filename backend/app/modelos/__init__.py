@@ -2,3 +2,7 @@
 
 Cada modelo se importa aquí para que Alembic detecte su tabla.
 """
+
+from app.modelos.usuario import Rol, Usuario
+
+__all__ = ["Rol", "Usuario"]
