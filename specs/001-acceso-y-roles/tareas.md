@@ -41,7 +41,7 @@
 
 > Las pruebas de esta fase se escriben **antes** de construir y deben fallar al terminar la fase. Todos los usuarios son ficticios (Art. X.3).
 
-- [ ] **T007** Definir los usuarios ficticios de prueba en `backend/tests/datos_ficticios.py`: un RO activo, un Administrador activo, un segundo Administrador, un usuario autenticado sin rol y un usuario con el acceso revocado.
+- [x] **T007** Definir los usuarios ficticios de prueba en `backend/tests/datos_ficticios.py`: un RO activo, un Administrador activo, un segundo Administrador, un usuario autenticado sin rol y un usuario con el acceso revocado.
   - Terminado cuando: los cinco usuarios están definidos, ninguno corresponde a una persona real, y cubren los cinco casos de acceso de la sección 8 de la spec.
   - Cubre: Art. VIII, Art. X.3
 
