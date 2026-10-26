@@ -8,3 +8,49 @@ body {
   margin: 0;
   padding: 2rem;
 }
+
+/* --- Pantalla de acceso --- */
+.acceso {
+  max-width: 24rem;
+  margin: 4rem auto;
+}
+
+.acceso .subtitulo {
+  color: #555;
+  margin-top: -0.75rem;
+}
+
+.acceso form {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 2rem;
+}
+
+.acceso label {
+  font-weight: 600;
+}
+
+.acceso input {
+  padding: 0.5rem;
+  font: inherit;
+  margin-bottom: 0.75rem;
+}
+
+.acceso button {
+  padding: 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 3px solid #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .acceso .subtitulo {
+    color: #aaa;
+  }
+}

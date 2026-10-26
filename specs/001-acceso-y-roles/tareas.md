@@ -127,7 +127,7 @@
   - Terminado cuando: abrir una ruta privada sin sesión no muestra ningún dato ni esqueleto de la plataforma, y `api.ts` no contiene ninguna decisión de permisos.
   - Cubre: RF-01, HU-3, Art. IV
 
-- [ ] **T028** [P] Implementar `frontend/app/acceso/page.tsx`: identificación y mensajes de acceso negado, en español y sin revelar detalles.
+- [x] **T028** [P] Implementar `frontend/app/acceso/page.tsx`: identificación y mensajes de acceso negado, en español y sin revelar detalles.
   - Terminado cuando: credenciales incorrectas, usuario inexistente, revocado y bloqueado muestran el mismo mensaje en pantalla; el usuario de credenciales correctas sin rol muestra el de solicitar autorización (RF-06, RF-09).
   - Cubre: HU-1, RF-09
 
