@@ -13,7 +13,7 @@
 
 ## Fase 1 — Preparación
 
-- [ ] **T001** Crear la base del repositorio para desarrollo: `.gitignore` (ignora `.env`, artefactos de build y dependencias), `.env.ejemplo` con las diez variables del plan y sin ningún secreto real, y `docker-compose.yml` con PostgreSQL para desarrollo.
+- [x] **T001** Crear la base del repositorio para desarrollo: `.gitignore` (ignora `.env`, artefactos de build y dependencias), `.env.ejemplo` con las diez variables del plan y sin ningún secreto real, y `docker-compose.yml` con PostgreSQL para desarrollo.
   - Terminado cuando: `docker compose up` levanta PostgreSQL, `git status` no muestra `.env` como archivo nuevo, y `.env.ejemplo` está versionado con valores de ejemplo.
   - Cubre: RF-10, Art. X.2
 
