@@ -83,7 +83,7 @@
   - Terminado cuando: pasan las pruebas de T011 que no dependen de rutas, y el hash de una misma contraseña es distinto en dos cálculos.
   - Cubre: RF-19, RF-20, RF-23
 
-- [ ] **T017** Implementar `backend/app/seguridad/sesiones.py`: crear, validar y terminar sesiones, aplicando la expiración configurada y rechazando las de usuarios revocados o eliminados.
+- [x] **T017** Implementar `backend/app/seguridad/sesiones.py`: crear, validar y terminar sesiones, aplicando la expiración configurada y rechazando las de usuarios revocados o eliminados.
   - Terminado cuando: pasan los casos de sesión vencida y de acceso revocado de T008.
   - Cubre: RF-01, RF-07, RF-15
 
