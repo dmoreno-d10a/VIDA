@@ -10,6 +10,7 @@ rol: a ese se le indica que solicite autorización, porque ya acreditó quién e
 (RF-06).
 """
 
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -17,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.bd import obtener_sesion_bd
+from app.configuracion import obtener_configuracion
 from app.esquemas.acceso import SesionActual, SolicitudDeAcceso
 from app.modelos.usuario import Usuario
 from app.seguridad import sesiones
@@ -109,15 +111,42 @@ def sesion_actual(usuario: Annotated[Usuario, Depends(usuario_actual)]) -> Usuar
 
 
 def _esta_bloqueado(usuario: Usuario) -> bool:
-    """Por ahora nunca bloquea: el bloqueo se implementa en T021."""
-    return False
+    """Indica si la cuenta está bloqueada en este momento.
+
+    El bloqueo se levanta solo, por tiempo: nadie tiene que desbloquear a
+    mano (RF-22).
+    """
+    if usuario.bloqueado_hasta is None:
+        return False
+
+    bloqueado_hasta = usuario.bloqueado_hasta
+    if bloqueado_hasta.tzinfo is None:
+        bloqueado_hasta = bloqueado_hasta.replace(tzinfo=UTC)
+
+    return bloqueado_hasta > datetime.now(UTC)
 
 
 def _contar_intento_fallido(usuario: Usuario, sesion_bd: Session) -> None:
-    """Por ahora no cuenta: el conteo se implementa en T021."""
-    return None
+    """Suma un intento fallido y bloquea al llegar al límite configurado."""
+    configuracion = obtener_configuracion()
+
+    usuario.intentos_fallidos += 1
+    if usuario.intentos_fallidos >= configuracion.intentos_max:
+        usuario.bloqueado_hasta = datetime.now(UTC) + timedelta(
+            minutes=configuracion.bloqueo_minutos
+        )
+        # El contador vuelve a cero junto con el bloqueo: al levantarse, la
+        # cuenta dispone otra vez de todos sus intentos.
+        usuario.intentos_fallidos = 0
+
+    sesion_bd.flush()
 
 
 def _reiniciar_intentos(usuario: Usuario, sesion_bd: Session) -> None:
-    """Por ahora no hay contador que reiniciar: se implementa en T021."""
-    return None
+    """Un acceso correcto deja la cuenta como si no hubiera fallado nunca."""
+    if usuario.intentos_fallidos == 0 and usuario.bloqueado_hasta is None:
+        return
+
+    usuario.intentos_fallidos = 0
+    usuario.bloqueado_hasta = None
+    sesion_bd.flush()

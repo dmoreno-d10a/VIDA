@@ -99,7 +99,7 @@
   - Terminado cuando: pasan los casos de T008 salvo el de bloqueo, y los mensajes de los casos negativos son indistinguibles entre sí.
   - Cubre: HU-1, HU-3, HU-4, RF-01, RF-08, RF-09
 
-- [ ] **T021** Agregar al acceso el conteo de intentos fallidos y el bloqueo temporal con los valores de configuración, que se levanta por tiempo sin intervención del Administrador.
+- [x] **T021** Agregar al acceso el conteo de intentos fallidos y el bloqueo temporal con los valores de configuración, que se levanta por tiempo sin intervención del Administrador.
   - Terminado cuando: pasa el caso de bloqueo de T008, el bloqueo se levanta solo al pasar el tiempo configurado, y cambiar `VIDA_INTENTOS_MAX` cambia el comportamiento sin tocar código.
   - Cubre: RF-22, RF-23
 
