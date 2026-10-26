@@ -12,9 +12,16 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.bd import obtener_sesion_bd
-from app.esquemas.usuarios import NuevoUsuario, UsuarioEnListado
+from app.esquemas.usuarios import (
+    CambioDeAcceso,
+    CambioDeRol,
+    ContrasenaRestablecida,
+    NuevoUsuario,
+    UsuarioEnListado,
+)
 from app.modelos.usuario import Usuario
 from app.seguridad.autorizacion import exigir_administrador
+from app.seguridad.sesiones import terminar_sesiones_de_usuario
 from app.seguridad.contrasena import ErrorDePolitica, calcular_hash_validado
 
 enrutador = APIRouter(
@@ -66,3 +73,85 @@ def crear(nuevo: NuevoUsuario, sesion_bd: BD) -> Usuario:
     sesion_bd.commit()
     sesion_bd.refresh(usuario)
     return usuario
+
+
+def _buscar(sesion_bd: Session, usuario_id: int) -> Usuario:
+    """Devuelve el usuario o responde que no se encontró."""
+    usuario = sesion_bd.get(Usuario, usuario_id)
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontró ese usuario.",
+        )
+    return usuario
+
+
+@enrutador.patch("/{usuario_id}/rol", response_model=UsuarioEnListado)
+def cambiar_rol(usuario_id: int, cambio: CambioDeRol, sesion_bd: BD) -> Usuario:
+    """Cambia el rol de un usuario existente (RF-13).
+
+    No hay que recrear la cuenta, y el cambio aplica de inmediato porque el
+    rol se lee de la base en cada petición.
+    """
+    usuario = _buscar(sesion_bd, usuario_id)
+    usuario.rol = cambio.rol
+    sesion_bd.commit()
+    sesion_bd.refresh(usuario)
+    return usuario
+
+
+@enrutador.post(
+    "/{usuario_id}/restablecer-contrasena", status_code=status.HTTP_204_NO_CONTENT
+)
+def restablecer_contrasena(
+    usuario_id: int, restablecimiento: ContrasenaRestablecida, sesion_bd: BD
+) -> None:
+    """Define una contraseña nueva para un usuario (RF-14).
+
+    La anterior deja de servir, y las sesiones que tuviera abiertas se
+    cierran: si se restableció por sospecha, dejarlas abiertas no tendría
+    sentido.
+    """
+    usuario = _buscar(sesion_bd, usuario_id)
+
+    try:
+        usuario.hash_contrasena = calcular_hash_validado(
+            restablecimiento.contrasena,
+            identificacion=usuario.identificacion,
+            hash_anterior=usuario.hash_contrasena,
+        )
+    except ErrorDePolitica as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)
+        ) from error
+
+    terminar_sesiones_de_usuario(sesion_bd, usuario.id)
+    sesion_bd.commit()
+
+
+@enrutador.patch("/{usuario_id}/acceso", response_model=UsuarioEnListado)
+def cambiar_acceso(
+    usuario_id: int, cambio: CambioDeAcceso, sesion_bd: BD
+) -> Usuario:
+    """Revoca o devuelve el acceso de un usuario (RF-15).
+
+    Revocar no borra la cuenta, y corta de inmediato lo que tuviera abierto.
+    """
+    usuario = _buscar(sesion_bd, usuario_id)
+    usuario.activo = cambio.activo
+
+    if not cambio.activo:
+        terminar_sesiones_de_usuario(sesion_bd, usuario.id)
+
+    sesion_bd.commit()
+    sesion_bd.refresh(usuario)
+    return usuario
+
+
+@enrutador.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar(usuario_id: int, sesion_bd: BD) -> None:
+    """Elimina un usuario (RF-15). Sus sesiones se van con él."""
+    usuario = _buscar(sesion_bd, usuario_id)
+    terminar_sesiones_de_usuario(sesion_bd, usuario.id)
+    sesion_bd.delete(usuario)
+    sesion_bd.commit()

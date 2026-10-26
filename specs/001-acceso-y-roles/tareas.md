@@ -107,7 +107,7 @@
   - Terminado cuando: pasan los casos de listar y crear de T010, y el listado muestra identificación, rol y estado del acceso, sin contraseñas.
   - Cubre: HU-5, RF-11, RF-12, RF-20
 
-- [ ] **T023** Agregar a `backend/app/rutas/usuarios.py` el cambio de rol, el restablecimiento de contraseña y la revocación y eliminación del acceso, terminando las sesiones abiertas del usuario afectado.
+- [x] **T023** Agregar a `backend/app/rutas/usuarios.py` el cambio de rol, el restablecimiento de contraseña y la revocación y eliminación del acceso, terminando las sesiones abiertas del usuario afectado.
   - Terminado cuando: pasan esos casos de T010, la contraseña anterior deja de servir tras un restablecimiento, y un usuario revocado o eliminado no puede seguir usando una sesión ya abierta.
   - Cubre: RF-13, RF-14, RF-15
 
