@@ -61,7 +61,7 @@
   - Terminado cuando: las pruebas existen, fallan, incluyen un caso que verifica que ninguna respuesta ni registro devuelve la contraseña, y un caso que cambia los límites por configuración y comprueba que la validación los sigue.
   - Cubre: HU-6, RF-17, RF-19, RF-20, RF-21, RF-23
 
-- [ ] **T012** [P] Escribir `frontend/e2e/visibilidad-por-rol.spec.ts` con lo esperado en pantalla: el RO ve sus opciones y no la administración de usuarios; el Administrador ve ambas; ambos ven su identificación y su rol; sin sesión no se renderiza ninguna pantalla privada.
+- [x] **T012** [P] Escribir `frontend/e2e/visibilidad-por-rol.spec.ts` con lo esperado en pantalla: el RO ve sus opciones y no la administración de usuarios; el Administrador ve ambas; ambos ven su identificación y su rol; sin sesión no se renderiza ninguna pantalla privada.
   - Terminado cuando: la prueba existe y falla.
   - Cubre: HU-2, HU-4, RF-04, RF-08
 
