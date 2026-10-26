@@ -111,7 +111,7 @@
   - Terminado cuando: pasan esos casos de T010, la contraseña anterior deja de servir tras un restablecimiento, y un usuario revocado o eliminado no puede seguir usando una sesión ya abierta.
   - Cubre: RF-13, RF-14, RF-15
 
-- [ ] **T024** Implementar la regla que impide dejar la plataforma sin ningún Administrador activo, en las tres acciones que podrían causarlo y también cuando el Administrador las ejecuta sobre su propia cuenta.
+- [x] **T024** Implementar la regla que impide dejar la plataforma sin ningún Administrador activo, en las tres acciones que podrían causarlo y también cuando el Administrador las ejecuta sobre su propia cuenta.
   - Terminado cuando: pasan los tres casos de T010 correspondientes, cada uno con un mensaje en español que explica el motivo.
   - Cubre: RF-16
 

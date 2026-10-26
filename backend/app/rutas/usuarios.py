@@ -8,7 +8,7 @@ dónde equivocarse (RF-05, RF-11).
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.bd import obtener_sesion_bd
@@ -19,7 +19,7 @@ from app.esquemas.usuarios import (
     NuevoUsuario,
     UsuarioEnListado,
 )
-from app.modelos.usuario import Usuario
+from app.modelos.usuario import Rol, Usuario
 from app.seguridad.autorizacion import exigir_administrador
 from app.seguridad.sesiones import terminar_sesiones_de_usuario
 from app.seguridad.contrasena import ErrorDePolitica, calcular_hash_validado
@@ -86,6 +86,49 @@ def _buscar(sesion_bd: Session, usuario_id: int) -> Usuario:
     return usuario
 
 
+# --- RF-16: la plataforma nunca se queda sin Administrador activo ----------
+
+SIN_ADMINISTRADOR = (
+    "No se puede dejar la plataforma sin ningún Administrador activo. "
+    "Asigna otro Administrador antes de hacer este cambio."
+)
+
+
+def _es_el_ultimo_administrador(sesion_bd: Session, usuario: Usuario) -> bool:
+    """Indica si este usuario es el único Administrador activo que queda.
+
+    La regla protege al último, no a cualquier Administrador: con dos, se
+    puede revocar, eliminar o degradar a uno sin problema.
+    """
+    if usuario.rol is not Rol.ADMINISTRADOR or not usuario.activo:
+        return False
+
+    otros_activos = sesion_bd.scalar(
+        select(func.count())
+        .select_from(Usuario)
+        .where(
+            Usuario.rol == Rol.ADMINISTRADOR,
+            Usuario.activo.is_(True),
+            Usuario.id != usuario.id,
+        )
+    )
+    return not otros_activos
+
+
+def _impedir_quedarse_sin_administrador(
+    sesion_bd: Session, usuario: Usuario
+) -> None:
+    """Corta la operación si dejaría la plataforma sin Administrador.
+
+    Aplica igual cuando el Administrador la ejecuta sobre su propia cuenta:
+    ese es justo el caso que inutiliza la plataforma con un clic.
+    """
+    if _es_el_ultimo_administrador(sesion_bd, usuario):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=SIN_ADMINISTRADOR
+        )
+
+
 @enrutador.patch("/{usuario_id}/rol", response_model=UsuarioEnListado)
 def cambiar_rol(usuario_id: int, cambio: CambioDeRol, sesion_bd: BD) -> Usuario:
     """Cambia el rol de un usuario existente (RF-13).
@@ -94,6 +137,8 @@ def cambiar_rol(usuario_id: int, cambio: CambioDeRol, sesion_bd: BD) -> Usuario:
     rol se lee de la base en cada petición.
     """
     usuario = _buscar(sesion_bd, usuario_id)
+    if cambio.rol is not Rol.ADMINISTRADOR:
+        _impedir_quedarse_sin_administrador(sesion_bd, usuario)
     usuario.rol = cambio.rol
     sesion_bd.commit()
     sesion_bd.refresh(usuario)
@@ -138,6 +183,8 @@ def cambiar_acceso(
     Revocar no borra la cuenta, y corta de inmediato lo que tuviera abierto.
     """
     usuario = _buscar(sesion_bd, usuario_id)
+    if not cambio.activo:
+        _impedir_quedarse_sin_administrador(sesion_bd, usuario)
     usuario.activo = cambio.activo
 
     if not cambio.activo:
@@ -152,6 +199,7 @@ def cambiar_acceso(
 def eliminar(usuario_id: int, sesion_bd: BD) -> None:
     """Elimina un usuario (RF-15). Sus sesiones se van con él."""
     usuario = _buscar(sesion_bd, usuario_id)
+    _impedir_quedarse_sin_administrador(sesion_bd, usuario)
     terminar_sesiones_de_usuario(sesion_bd, usuario.id)
     sesion_bd.delete(usuario)
     sesion_bd.commit()
