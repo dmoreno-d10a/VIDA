@@ -154,9 +154,10 @@
   - Cubre: HU-1, HU-2, HU-6
   - **Puntaje: 16 de 16** (2026-10-26). Verificado contra la plataforma corriendo, pasando por el front: entra y es reconocido como RO; la cookie es `httpOnly`; ve su identificación y rol en pantalla; su menú no ofrece administrar usuarios; el acceso directo a `/usuarios` y a la creación responde 403 sin filtrar ningún dato; el cambio de contraseña rechaza la actual equivocada (401) y la que incumple la política (422), acepta la válida (204), la anterior deja de servir y la nueva sirve; al cerrar sesión la cookie anterior ya no vale. Además, las 4 pruebas e2e de T012 pasan en Chromium.
 
-- [ ] **T034** Ejecutar el caso de generalización y registrar el puntaje: recorrido del **Administrador** más los tres casos que no son un usuario normal (autenticado sin rol, acceso revocado, persona sin sesión).
+- [x] **T034** Ejecutar el caso de generalización y registrar el puntaje: recorrido del **Administrador** más los tres casos que no son un usuario normal (autenticado sin rol, acceso revocado, persona sin sesión).
   - Terminado cuando: los cuatro pasan completos, quedan registrados igual que T033, y ninguno usa el caso de referencia del proyecto (Art. VIII).
   - Cubre: HU-3, HU-5, Art. VIII
+  - **Puntaje: 15 de 15** (2026-10-26). **Administrador:** entra, alcanza la administración, su menú sí la ofrece, también hace lo del RO y el listado no trae contraseñas ni hashes. **Autenticado sin rol:** no entra (403), se le indica solicitar autorización y no recibe sesión. **Acceso revocado:** no entra (401) y recibe el mismo mensaje genérico que una identificación inexistente. **Sin sesión:** las pantallas privadas redirigen con 307 sin renderizar, las rutas de la API responden 401 y no filtran nada en el cuerpo. Ninguno de los cuatro recorridos tiene relación con el caso de referencia del proyecto (Adapter Reverso).
 
 - [ ] **T035** Barrer **todas** las rutas del backend y **todas** las pantallas del front, verificando que ninguna responda datos ni se renderice sin sesión válida, y que ninguna de administración responda a un rol RO.
   - Terminado cuando: existe la lista completa de rutas y pantallas con su resultado, y no hay ninguna excepción. Se verifica la lista completa, no una muestra.
