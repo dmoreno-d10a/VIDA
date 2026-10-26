@@ -95,7 +95,7 @@
   - Terminado cuando: ningún esquema de salida contiene un campo de contraseña.
   - Cubre: RF-08, RF-11, RF-19
 
-- [ ] **T020** Implementar `backend/app/rutas/acceso.py`: entrar, cerrar sesión y consultar la sesión actual con identificación y rol vigente, con la misma respuesta para todos los casos negativos.
+- [x] **T020** Implementar `backend/app/rutas/acceso.py`: entrar, cerrar sesión y consultar la sesión actual con identificación y rol vigente, con la misma respuesta para todos los casos negativos.
   - Terminado cuando: pasan los casos de T008 salvo el de bloqueo, y los mensajes de los casos negativos son indistinguibles entre sí.
   - Cubre: HU-1, HU-3, HU-4, RF-01, RF-08, RF-09
 

@@ -87,3 +87,16 @@ def terminar_sesion(sesion_bd: Session, identificador: str | None) -> None:
 def duracion_en_segundos() -> int:
     """Duración configurada de la sesión, para la cookie."""
     return obtener_configuracion().sesion_minutos * 60
+
+
+def terminar_sesiones_de_usuario(sesion_bd: Session, usuario_id: int) -> int:
+    """Cierra todas las sesiones abiertas de un usuario.
+
+    Se usa al cerrar sesión, al revocar o eliminar la cuenta y al restablecer
+    la contraseña: en todos esos casos lo ya abierto deja de servir (RF-15).
+    """
+    from app.modelos.sesion import terminar_sesiones_de
+
+    terminadas = terminar_sesiones_de(sesion_bd, usuario_id)
+    sesion_bd.flush()
+    return terminadas

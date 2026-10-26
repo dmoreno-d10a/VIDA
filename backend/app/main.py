@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as ErrorHTTP
 
 from app.configuracion import obtener_configuracion
+from app.rutas import acceso
 
 # Se lee al importar para que una configuración incompleta impida el arranque,
 # en vez de descubrirse en la primera petición (RF-23).
@@ -57,6 +58,9 @@ async def manejar_error_de_validacion(
     if campos:
         mensaje += " Revisa: " + ", ".join(campos) + "."
     return JSONResponse(status_code=422, content={"detalle": mensaje})
+
+
+app.include_router(acceso.enrutador)
 
 
 @app.get("/salud", tags=["salud"])
