@@ -123,3 +123,11 @@ body {
   border-left: 3px solid #1b6e3c;
   background: rgba(27, 110, 60, 0.08);
 }
+
+/* --- Cambio de contraseña --- */
+.contrasena form {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+  margin-top: 1.5rem;
+}

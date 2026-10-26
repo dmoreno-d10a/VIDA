@@ -143,7 +143,7 @@
   - Terminado cuando: un Administrador completa las seis acciones desde la pantalla, y la que dejaría la plataforma sin Administrador se informa sin ejecutarse.
   - Cubre: HU-5, RF-11 a RF-16
 
-- [ ] **T032** [P] Implementar `frontend/app/(privado)/perfil/contrasena/page.tsx` para el cambio de la propia contraseña, informando la regla incumplida cuando corresponda.
+- [x] **T032** [P] Implementar `frontend/app/(privado)/perfil/contrasena/page.tsx` para el cambio de la propia contraseña, informando la regla incumplida cuando corresponda.
   - Terminado cuando: un usuario cambia su contraseña desde la pantalla, y una contraseña que incumple la política se rechaza indicando qué regla falló.
   - Cubre: HU-6, RF-17, RF-20
 
