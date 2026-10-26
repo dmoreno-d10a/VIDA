@@ -91,7 +91,7 @@
   - Terminado cuando: la dependencia queda verificada de forma aislada —sin sesión 401; RO en ruta de administración 403 sin filtrar datos; Administrador 200 en ambas; cambio de rol, revocación y pérdida de rol aplican de inmediato sobre una sesión abierta—. La suite completa de T009 cierra en T022, cuando existan las rutas reales que invoca; este criterio se corrigió al implementar, porque dependía de tareas posteriores.
   - Cubre: RF-01, RF-03, RF-05, RF-06
 
-- [ ] **T019** [P] Implementar los esquemas de entrada y salida en `backend/app/esquemas/acceso.py` y `backend/app/esquemas/usuarios.py`.
+- [x] **T019** [P] Implementar los esquemas de entrada y salida en `backend/app/esquemas/acceso.py` y `backend/app/esquemas/usuarios.py`.
   - Terminado cuando: ningún esquema de salida contiene un campo de contraseña.
   - Cubre: RF-08, RF-11, RF-19
 
