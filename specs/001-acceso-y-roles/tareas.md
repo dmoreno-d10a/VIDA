@@ -131,7 +131,7 @@
   - Terminado cuando: credenciales incorrectas, usuario inexistente, revocado y bloqueado muestran el mismo mensaje en pantalla; el usuario de credenciales correctas sin rol muestra el de solicitar autorización (RF-06, RF-09).
   - Cubre: HU-1, RF-09
 
-- [ ] **T029** Implementar `frontend/app/(privado)/layout.tsx`: consulta la sesión actual, muestra identificación y rol vigente, y arma el menú solo con las opciones del rol.
+- [x] **T029** Implementar `frontend/app/(privado)/layout.tsx`: consulta la sesión actual, muestra identificación y rol vigente, y arma el menú solo con las opciones del rol.
   - Terminado cuando: el menú del RO no contiene la administración de usuarios, el del Administrador sí, y ambos muestran identificación y rol en cualquier pantalla.
   - Cubre: HU-2, HU-4, RF-04, RF-08
 
