@@ -6,6 +6,12 @@ ninguna de las dos (Art. IV de la constitución).
 
 from fastapi import FastAPI
 
+from app.configuracion import obtener_configuracion
+
+# Se lee al importar para que una configuración incompleta impida el arranque,
+# en vez de descubrirse en la primera petición (RF-23).
+configuracion = obtener_configuracion()
+
 app = FastAPI(
     title="V.I.D.A. — API",
     description=(

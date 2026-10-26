@@ -25,7 +25,7 @@
   - Terminado cuando: el front arranca localmente, muestra esa página y el documento declara `lang="es"`.
   - Cubre: Art. XII
 
-- [ ] **T004** Implementar `backend/app/configuracion.py`: lee del entorno los diez parámetros del plan, con los valores por defecto definidos, y **falla al arrancar** si falta alguno de los que no tienen valor por defecto.
+- [x] **T004** Implementar `backend/app/configuracion.py`: lee del entorno los diez parámetros del plan, con los valores por defecto definidos, y **falla al arrancar** si falta alguno de los que no tienen valor por defecto.
   - Terminado cuando: arrancar sin `VIDA_BD_URL` falla con un mensaje claro en español, y cambiar `VIDA_SESION_MINUTOS` o `VIDA_CONTRASENA_MIN` por entorno cambia el valor leído, sin tocar código.
   - Cubre: RF-07, RF-20, RF-22, RF-23
 
