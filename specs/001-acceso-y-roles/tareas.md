@@ -71,7 +71,7 @@
   - Terminado cuando: el modelo existe, solo admite los dos roles, y no tiene ningún campo que guarde la contraseña en forma legible.
   - Cubre: RF-02, RF-03, RF-10, RF-19
 
-- [ ] **T014** Implementar `backend/app/modelos/sesion.py`: identificador opaco, usuario, creación y expiración.
+- [x] **T014** Implementar `backend/app/modelos/sesion.py`: identificador opaco, usuario, creación y expiración.
   - Terminado cuando: el modelo existe y permite borrar todas las sesiones de un usuario en una operación.
   - Cubre: RF-07, RF-15
 
