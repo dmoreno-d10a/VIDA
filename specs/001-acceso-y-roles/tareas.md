@@ -33,7 +33,7 @@
   - Terminado cuando: `alembic current` responde contra la base de datos de desarrollo sin error.
   - Cubre: RF-10
 
-- [ ] **T006** [P] Incorporar `backend/app/datos/contrasenas-comunes.txt` con una lista pública de contraseñas de uso común, y dejar su ruta configurable.
+- [x] **T006** [P] Incorporar `backend/app/datos/contrasenas-comunes.txt` con una lista pública de contraseñas de uso común, y dejar su ruta configurable.
   - Terminado cuando: el archivo existe, está versionado, contiene solo contraseñas públicas de uso común —ningún dato de persona ni de cliente— y la ruta se lee de `VIDA_CONTRASENAS_COMUNES`.
   - Cubre: RF-20, Art. X.3
 
