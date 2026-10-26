@@ -48,6 +48,12 @@ class Configuracion(BaseSettings):
     intentos_max: int = Field(default=5, gt=0)
     bloqueo_minutos: int = Field(default=15, gt=0)
 
+    # --- Documentación interactiva de la API ---
+    # Apagada por omisión: /docs, /redoc y /openapi.json describen la
+    # superficie de la API y RF-01 no admite contenido accesible sin sesión.
+    # Se puede encender en desarrollo con VIDA_DOCS_API=1.
+    docs_api: bool = Field(default=False)
+
     # --- Administrador inicial (RF-18). Solo se usan en la puesta en marcha. ---
     admin_inicial: str | None = Field(default=None)
     admin_inicial_contrasena: str | None = Field(default=None)

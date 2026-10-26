@@ -23,6 +23,12 @@ app = FastAPI(
         "Vortexbird Intelligent Documentation Assistant."
     ),
     version="0.1.0",
+    # Sin sesión no hay contenido de la plataforma, y la documentación
+    # interactiva describe su superficie (RF-01). Se apaga salvo que una
+    # instalación de desarrollo la pida expresamente.
+    docs_url="/docs" if configuracion.docs_api else None,
+    redoc_url="/redoc" if configuracion.docs_api else None,
+    openapi_url="/openapi.json" if configuracion.docs_api else None,
 )
 
 
