@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Crea una nueva especificación SDD: rama feature/NNN-nombre + carpeta specs/NNN-nombre/
 # Uso: bash scripts/nueva-spec.sh <nombre-corto-en-kebab-case>
+#
+# El número lo calcula el script: el siguiente al más alto que ya existe.
+# Para fijarlo (cuando el mapa reserva uno y no construimos en orden):
+#   SDD_NUMERO=007 bash scripts/nueva-spec.sh parametros-editables
 set -euo pipefail
 
 if [ $# -lt 1 ] || [ -z "$1" ]; then
@@ -37,23 +41,53 @@ if git remote get-url origin >/dev/null 2>&1; then
   fi
 fi
 
-# Calcula el siguiente número a partir de specs/ y de las ramas existentes
-# (locales y del remoto, que ya quedaron actualizadas arriba).
-ULTIMO=0
+# Reúne los números ya tomados: carpetas de specs/, ramas (locales y del
+# remoto, que ya quedaron actualizadas arriba) y specs que ya están en el main
+# del remoto. Una rama integrada se borra (ver CONTRIBUTING.md), así que de
+# esas specs no queda rama: solo su carpeta.
+USADOS=""
 for d in specs/[0-9][0-9][0-9]-*/; do
   [ -d "$d" ] || continue
-  n=$(basename "$d" | cut -c1-3); n=$((10#$n))
-  [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
+  USADOS="$USADOS $(basename "$d" | cut -c1-3)"
 done
 for b in $(git branch -a --format='%(refname:short)' | grep -oE 'feature/[0-9]{3}' | cut -d/ -f2 || true); do
-  n=$((10#$b)); [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
+  USADOS="$USADOS $b"
 done
-# Y las specs que ya están en el main del remoto. Una rama integrada se borra
-# (ver CONTRIBUTING.md), así que de esas specs no queda rama: solo su carpeta.
 for s in $(git ls-tree --name-only origin/main specs/ 2>/dev/null | sed -n 's|^specs/\([0-9][0-9][0-9]\)-.*|\1|p' || true); do
-  n=$((10#$s)); [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
+  USADOS="$USADOS $s"
 done
-NUM=$(printf "%03d" $((ULTIMO + 1)))
+
+esta_tomado() {
+  for u in $USADOS; do
+    [ "$((10#$u))" -eq "$((10#$1))" ] && return 0
+  done
+  return 1
+}
+
+if [ -n "${SDD_NUMERO:-}" ]; then
+  # Número explícito. Hace falta porque el mapa reserva los números por
+  # funcionalidad (sdd/mapa-funcionalidades.md) y no las construimos en orden:
+  # sin esto, pedir la 007 cuando la más alta es la 004 crearía una "005".
+  if ! echo "$SDD_NUMERO" | grep -qE '^[0-9]{3}$'; then
+    echo "SDD_NUMERO debe ser exactamente tres dígitos, por ejemplo 007." >&2
+    echo "Recibí: '$SDD_NUMERO'" >&2
+    exit 1
+  fi
+  if esta_tomado "$SDD_NUMERO"; then
+    echo "El número $SDD_NUMERO ya está tomado por una spec o una rama." >&2
+    echo "Revisa sdd/mapa-funcionalidades.md y elige el que corresponde, o" >&2
+    echo "deja que el script lo calcule solo (sin SDD_NUMERO)." >&2
+    exit 1
+  fi
+  NUM="$SDD_NUMERO"
+else
+  # Sin número explícito: el siguiente al más alto que ya existe.
+  ULTIMO=0
+  for u in $USADOS; do
+    n=$((10#$u)); [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
+  done
+  NUM=$(printf "%03d" $((ULTIMO + 1)))
+fi
 
 RAMA="feature/${NUM}-${NOMBRE}"
 CARPETA="specs/${NUM}-${NOMBRE}"
