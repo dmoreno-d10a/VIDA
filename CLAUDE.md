@@ -4,7 +4,7 @@
 
 **V.I.D.A. (Vortexbird Intelligent Documentation Assistant)** es una plataforma web para los Requirements Owners (RO) de VortexBird. Su primer módulo genera la documentación técnica que se entrega a las fábricas de desarrollo, a partir de la información que carga el RO y de los formatos que define el administrador. La lógica de IA corre aparte del front y accede a los modelos vía LiteLLM hacia VORKAN.
 
-El proyecto se desarrolla **paso a paso** con **Spec Driven Development (Spec-First)**: una funcionalidad a la vez.
+El proyecto se desarrolla con **Spec Driven Development (Spec-First)**: una spec por funcionalidad, en su propia rama. Varias funcionalidades pueden avanzar al mismo tiempo, siempre que las que necesitan ya estén integradas en `main` (ver `sdd/mapa-funcionalidades.md`).
 
 ## Reglas permanentes
 
@@ -12,7 +12,8 @@ El proyecto se desarrolla **paso a paso** con **Spec Driven Development (Spec-Fi
 2. **Responde y escribe todo en español.**
 3. **No inventes datos de negocio.** Lo que falte se marca como `[NECESITA ACLARACIÓN: ...]` en specs y se pregunta al usuario.
 4. **Respeta el flujo:** especificación → planificación → tareas → implementación. No escribas código de una funcionalidad sin `tareas.md` aprobado.
-5. **No te adelantes:** trabaja solo en la funcionalidad de la rama actual. No crees estructura, carpetas ni código para funcionalidades futuras.
+5. **No te adelantes:** trabaja solo en la funcionalidad de la rama actual. No crees estructura, carpetas ni código para funcionalidades futuras, ni para las que otra persona esté construyendo en paralelo.
+   - **No implementes una funcionalidad cuyas dependencias no estén en `main`.** El mapa dice de cuál depende cada una. Su spec y su plan sí se pueden escribir antes: lo que se bloquea es `/sdd-implementar`, no `/sdd-especificar`.
 6. **Una spec = una rama** `feature/NNN-nombre`. Nunca trabajes directamente sobre `main`.
 7. **La constitución solo cambia por Pull Request** (`/sdd-constitucion`).
 8. **Nunca** guardes keys, tokens ni datos reales de clientes en el repositorio.

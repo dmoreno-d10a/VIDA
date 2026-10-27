@@ -13,6 +13,51 @@
 - Antes de abrir el PR, actualiza tu rama con `main` (`git pull --rebase origin main`).
 - Una rama se elimina después de integrarse.
 
+## Trabajo en paralelo
+
+Varias funcionalidades pueden avanzar al mismo tiempo, una por persona y cada una en su rama. Dos reglas y tres cuidados.
+
+**Las dos reglas**
+
+1. **No se implementa una funcionalidad cuyas dependencias no estén integradas en `main`.** De cuál depende cada una lo dice [`sdd/mapa-funcionalidades.md`](sdd/mapa-funcionalidades.md). Hoy, por ejemplo, la 003 no se puede implementar hasta que la 002 esté en `main`.
+2. **Escribir la spec y el plan nunca está bloqueado.** No necesitan el código de la funcionalidad anterior. Lo que espera es `/sdd-implementar`, no `/sdd-especificar`. Mientras alguien implementa, otra persona puede dejar listas las especificaciones que vienen.
+
+**Cuidado 1 — La numeración de las specs**
+
+Crea la rama **solo** con `bash scripts/nueva-spec.sh <nombre>` o con `/sdd-especificar`. El script consulta el remoto antes de calcular el número y se detiene si no puede, justamente para que dos personas no creen la misma `002`. No crees ramas `feature/NNN-...` a mano.
+
+**Cuidado 2 — Las migraciones de la base de datos**
+
+Si dos ramas generan cada una su migración desde el mismo punto, al juntarlas quedan **dos cabezas** y `alembic upgrade head` falla.
+
+> **Convención: quien mezcla segundo regenera su migración.**
+
+En concreto, cuando tu rama ya tiene una migración y entra otra a `main` antes que la tuya:
+
+```bash
+git pull --rebase origin main
+cd backend
+.venv/Scripts/python -m alembic history          # confirma que hay dos cabezas
+# borra tu archivo de migración y vuelve a generarlo sobre la cabeza nueva
+rm alembic/versions/<tu-migracion>.py
+.venv/Scripts/python -m alembic revision --autogenerate -m "<tu descripción>"
+.venv/Scripts/python -m alembic upgrade head     # debe aplicar sin error
+```
+
+Regenerar es más seguro que editar el `down_revision` a mano, porque además recalcula el contenido contra el esquema que dejó la otra rama. Si tu migración llevaba datos o pasos escritos a mano, cópialos al archivo nuevo antes de borrar el viejo.
+
+**Cuidado 3 — Los archivos que todas las ramas tocan**
+
+Estos van a dar conflicto, y son conflictos pequeños y previsibles. Al resolverlos, **conserva las dos partes**: casi nunca una reemplaza a la otra.
+
+| Archivo | Qué agrega cada funcionalidad |
+|---|---|
+| `backend/app/main.py` | El registro de su enrutador |
+| `backend/app/modelos/__init__.py` | La importación de sus modelos |
+| `frontend/app/componentes/menu-por-rol.tsx` | Su opción en el menú |
+| `.env.ejemplo` | Sus variables de configuración |
+| `README.md` y `sdd/mapa-funcionalidades.md` | Su estado |
+
 ## Commits
 
 Formato: `<tipo>(<spec>): <descripción en minúscula>`
