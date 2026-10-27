@@ -21,7 +21,24 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
+# Trae las ramas del remoto ANTES de calcular el número.
+#
+# Sin esto, dos personas que trabajan en paralelo y no han hecho fetch calculan
+# el mismo número y crean dos specs "002" distintas. Si el remoto no responde,
+# el script se detiene en vez de inventar un número con información vieja.
+if git remote get-url origin >/dev/null 2>&1; then
+  if ! git fetch --prune origin >/dev/null 2>&1; then
+    echo "No se pudo consultar el remoto, y sin eso el número de la spec puede" >&2
+    echo "repetir uno que otra persona ya tomó. Revisa tu conexión y repite." >&2
+    echo "Si de verdad necesitas trabajar sin remoto, usa:" >&2
+    echo "    SDD_SIN_REMOTO=1 bash scripts/nueva-spec.sh $1" >&2
+    [ "${SDD_SIN_REMOTO:-0}" = "1" ] || exit 1
+    echo "Aviso: continuando sin consultar el remoto, por SDD_SIN_REMOTO=1." >&2
+  fi
+fi
+
 # Calcula el siguiente número a partir de specs/ y de las ramas existentes
+# (locales y del remoto, que ya quedaron actualizadas arriba).
 ULTIMO=0
 for d in specs/[0-9][0-9][0-9]-*/; do
   [ -d "$d" ] || continue
@@ -30,6 +47,11 @@ for d in specs/[0-9][0-9][0-9]-*/; do
 done
 for b in $(git branch -a --format='%(refname:short)' | grep -oE 'feature/[0-9]{3}' | cut -d/ -f2 || true); do
   n=$((10#$b)); [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
+done
+# Y las specs que ya están en el main del remoto. Una rama integrada se borra
+# (ver CONTRIBUTING.md), así que de esas specs no queda rama: solo su carpeta.
+for s in $(git ls-tree --name-only origin/main specs/ 2>/dev/null | sed -n 's|^specs/\([0-9][0-9][0-9]\)-.*|\1|p' || true); do
+  n=$((10#$s)); [ "$n" -gt "$ULTIMO" ] && ULTIMO=$n
 done
 NUM=$(printf "%03d" $((ULTIMO + 1)))
 

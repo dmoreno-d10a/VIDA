@@ -25,7 +25,11 @@ Constitución → Especificación → Planificación → Tareas → Implementaci
 | Tareas | ¿En qué pasos verificables? | `specs/NNN-nombre/tareas.md` |
 | Implementación | Construcción tarea por tarea | Código y commits en la rama |
 
-Avanzamos **una funcionalidad a la vez**: no empieza la siguiente hasta que la anterior se integra en `main`.
+**Varias funcionalidades pueden avanzar al mismo tiempo**, una por persona y cada una en su rama. La única condición: no se **implementa** una funcionalidad cuyas dependencias no estén integradas en `main`. El [mapa de funcionalidades](sdd/mapa-funcionalidades.md) dice de cuál depende cada una.
+
+Escribir la **spec** y el **plan** nunca está bloqueado: no necesitan el código de la funcionalidad anterior. Así, mientras alguien implementa la 002, otra persona puede dejar listas las specs de la 003 y la 004.
+
+Antes de repartir trabajo, lee [CONTRIBUTING.md](CONTRIBUTING.md#trabajo-en-paralelo): ahí están las tres cosas que chocan cuando dos ramas avanzan a la vez (numeración de specs, migraciones y archivos compartidos).
 
 **Herramientas**
 - **Desarrollo:** Claude Code, con los comandos `/sdd-*` de `.claude/commands/`.
