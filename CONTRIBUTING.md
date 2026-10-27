@@ -26,6 +26,19 @@ Varias funcionalidades pueden avanzar al mismo tiempo, una por persona y cada un
 
 Crea la rama **solo** con `bash scripts/nueva-spec.sh <nombre>` o con `/sdd-especificar`. El script consulta el remoto antes de calcular el número y se detiene si no puede, justamente para que dos personas no creen la misma `002`. No crees ramas `feature/NNN-...` a mano.
 
+**Cuando el mapa ya reserva el número, pásalo explícitamente:**
+
+```bash
+SDD_NUMERO=007 bash scripts/nueva-spec.sh parametros-editables
+```
+
+Sin `SDD_NUMERO`, el script toma el número más alto que exista y le suma uno. Eso sirve mientras se construya en orden, pero no es nuestro caso: el mapa reserva del 001 al 007 y las estamos tomando salteadas. Dos consecuencias concretas:
+
+- Pedir la 007 cuando la más alta es la 004 daría una `005`, que en el mapa es otra funcionalidad.
+- Una vez que existe la `007`, el modo automático pasa a dar `008` y se salta la 003, la 004, la 005 y la 006.
+
+Así que **mientras queden números del mapa sin usar, pasa `SDD_NUMERO`**. El modo automático queda para las specs que vengan después del mapa, de la 008 en adelante. El script rechaza un número ya tomado y uno que no sean tres dígitos.
+
 **Cuidado 2 — Las migraciones de la base de datos**
 
 Si dos ramas generan cada una su migración desde el mismo punto, al juntarlas quedan **dos cabezas** y `alembic upgrade head` falla.
