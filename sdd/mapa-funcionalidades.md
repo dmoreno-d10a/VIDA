@@ -8,7 +8,9 @@
 
 Este documento lista las funcionalidades del **módulo de documentación**, el primero de la plataforma, con su alcance, sus dependencias y su estado. No es una especificación ni un plan: no define *cómo* se construye nada. Cada funcionalidad se especifica a su turno con `/sdd-especificar`, en su propia rama `feature/NNN-nombre`, según el Artículo XI de la [constitución](constitucion.md).
 
-El orden de la numeración es el orden previsto de construcción: avanzamos **una funcionalidad a la vez** y la siguiente no empieza hasta que la anterior se integra en `main`.
+El orden de la numeración es el orden previsto de construcción, pero **no obliga a ir de una en una**: dos funcionalidades pueden avanzar al mismo tiempo si las que necesitan ya están integradas en `main`. La columna *Depende de* es la que manda, y la tabla de abajo dice qué se puede tomar hoy.
+
+Escribir una spec y su plan nunca está bloqueado por otra funcionalidad; lo que espera es la implementación. Las reglas y los conflictos previsibles del trabajo en paralelo están en [`CONTRIBUTING.md`](../CONTRIBUTING.md#trabajo-en-paralelo).
 
 ---
 
@@ -16,7 +18,7 @@ El orden de la numeración es el orden previsto de construcción: avanzamos **un
 
 | N.º | Funcionalidad | Depende de | Estado |
 |---|---|---|---|
-| 001 | Acceso y roles | — | Pendiente |
+| 001 | Acceso y roles | — | **Hecha** |
 | 002 | Tipos de documentación | 001 | Pendiente |
 | 003 | Carga de información de una actividad | 002 | Pendiente |
 | 004 | Análisis y preguntas | 003 | Pendiente |
@@ -24,11 +26,26 @@ El orden de la numeración es el orden previsto de construcción: avanzamos **un
 | 006 | Revisión, historial y descarga | 005 | Pendiente |
 | 007 | Parámetros editables | 001 | Pendiente |
 
+## Qué se puede tomar ahora
+
+Con la 001 integrada:
+
+| Se puede implementar ya | Espera a | Su spec y su plan se pueden escribir ya |
+|---|---|---|
+| **002** Tipos de documentación | — | Sí |
+| **007** Parámetros editables | — | Sí |
+| 003 Carga de información | 002 | Sí |
+| 004 Análisis y preguntas | 003 | Sí |
+| 005 Generación y evaluación | 004 y 007 | Sí |
+| 006 Revisión, historial y descarga | 005 | Sí |
+
+La **002** y la **007** son las dos únicas que hoy pueden implementarse en paralelo. De ahí en adelante, `002 → 003 → 004 → 005 → 006` es una cadena: cada una necesita lo que produce la anterior.
+
 ---
 
 ## 001 — Acceso y roles
 
-**Estado:** Pendiente
+**Estado:** Hecha (integrada en `main`)
 **Depende de:** —
 
 **Qué cubre**

@@ -1,0 +1,133 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+}
+
+/* --- Pantalla de acceso --- */
+.acceso {
+  max-width: 24rem;
+  margin: 4rem auto;
+}
+
+.acceso .subtitulo {
+  color: #555;
+  margin-top: -0.75rem;
+}
+
+.acceso form {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 2rem;
+}
+
+.acceso label {
+  font-weight: 600;
+}
+
+.acceso input {
+  padding: 0.5rem;
+  font: inherit;
+  margin-bottom: 0.75rem;
+}
+
+.acceso button {
+  padding: 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 3px solid #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .acceso .subtitulo {
+    color: #aaa;
+  }
+}
+
+/* --- Capa autenticada --- */
+.plataforma {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.plataforma header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.35);
+}
+
+.sesion {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sesion .rol {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.plataforma nav ul {
+  display: flex;
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+}
+
+/* --- Administración de usuarios --- */
+.usuarios table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.usuarios th,
+.usuarios td {
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+  vertical-align: middle;
+}
+
+.usuarios .acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.usuarios form.crear {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+}
+
+.aviso {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 3px solid #1b6e3c;
+  background: rgba(27, 110, 60, 0.08);
+}
+
+/* --- Cambio de contraseña --- */
+.contrasena form {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+  margin-top: 1.5rem;
+}

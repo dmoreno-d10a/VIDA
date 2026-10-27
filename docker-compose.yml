@@ -1,0 +1,36 @@
+# PostgreSQL para desarrollo local de V.I.D.A.
+#
+# Uso:
+#     cp .env.ejemplo .env     # y ajusta los valores
+#     docker compose up -d
+#
+# Las credenciales salen de `.env`, que no se versiona (Art. X.2).
+# VIDA_BD_CONTRASENA no tiene valor por defecto: si falta, compose falla con
+# un mensaje claro en vez de levantar la base con una contraseña conocida.
+
+services:
+  bd:
+    image: postgres:16-alpine
+    # Sin container_name fijo a proposito: con uno, un segundo clon del
+    # proyecto adopta en silencio el contenedor y la base del primero.
+    # Compose nombra el contenedor y el volumen por proyecto.
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${VIDA_BD_NOMBRE:-vida}
+      POSTGRES_USER: ${VIDA_BD_USUARIO:-vida}
+      POSTGRES_PASSWORD: ${VIDA_BD_CONTRASENA:?falta VIDA_BD_CONTRASENA. Copia .env.ejemplo a .env y define su valor}
+      # Mensajes del motor en español, en línea con el Art. XII.
+      LANG: es_ES.utf8
+    ports:
+      - "${VIDA_BD_PUERTO:-5432}:5432"
+    volumes:
+      - datos-bd:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${VIDA_BD_USUARIO:-vida} -d ${VIDA_BD_NOMBRE:-vida}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  datos-bd:
