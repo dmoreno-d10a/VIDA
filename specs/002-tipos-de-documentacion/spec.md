@@ -71,6 +71,7 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 - **Dado** un tipo activo, **cuando** el Administrador lo desactiva, **entonces** deja de aparecer entre las opciones que puede elegir un RO, pero sigue visible para el Administrador y puede reactivarse.
 - **Dado** un tipo que nunca ha sido usado, **cuando** el Administrador lo elimina, **entonces** desaparece de la plataforma.
 - **Dado** un tipo que ya fue usado por algún RO, **cuando** el Administrador intenta eliminarlo, **entonces** el sistema no lo elimina, le explica que está en uso y le ofrece desactivarlo.
+- **Dado** un tipo con formato cargado al que todavía no ha recurrido ningún RO, **cuando** el Administrador intenta eliminarlo, **entonces** el sistema tampoco lo elimina y le ofrece desactivarlo (RF-15a).
 
 ### HU-5: Elegir entre los tipos disponibles
 **Como** RO, **quiero** ver la lista de tipos de documentación disponibles con su descripción, **para** saber qué puedo documentar en la plataforma y elegir el que corresponde a mi actividad.
@@ -89,6 +90,8 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 | RF-03 | El sistema debe distinguir tres estados de un tipo: **incompleto** (sin formato cargado), **activo** (con formato cargado y disponible para los RO) y **desactivado** (no disponible para los RO, conservado para el Administrador). |
 | RF-04 | El sistema debe permitir cargar, para cada tipo, **un** archivo de formato vigente en Word (`.docx`) o Excel (`.xlsx`), y debe rechazar cualquier otro tipo de archivo —incluidos los formatos antiguos `.doc` y `.xls`— indicando cuáles admite. |
 | RF-05 | El sistema debe **reconocer la estructura** del formato al cargarlo: en Word, las secciones con sus nombres y su orden; en Excel, las hojas con su orden, y las columnas de cada hoja con sus nombres y su orden. |
+| RF-05a | En Word, una **sección** es un párrafo con estilo de título (`Título 1` a `Título 9` y sus equivalentes en otros idiomas), y se registra con su nombre y su nivel. Ninguna otra marca —negrita, tamaño de letra, numeración manual— cuenta como sección: interpretarla sería suponer (Art. II). |
+| RF-05b | En Excel, los nombres de las columnas se toman de la **primera fila con contenido** de cada hoja, y el sistema registra de qué fila los tomó, para que el Administrador pueda confirmarlo (RF-08). |
 | RF-06 | El sistema debe conservar la estructura reconocida **tal como viene en el archivo**: no agrega, quita, renombra ni reordena secciones, hojas ni columnas (Art. I). |
 | RF-07 | El sistema debe analizar cada formato **una sola vez**, en el momento de cargarlo, y guardar el resultado para que las funcionalidades posteriores lo consulten sin volver a procesar el archivo (Art. VI). |
 | RF-08 | El sistema debe mostrar al Administrador la estructura reconocida de un tipo, de modo que pueda compararla con el archivo original antes de ponerlo a disposición de los RO. |
@@ -99,6 +102,7 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 | RF-13 | El sistema debe permitir al Administrador **reemplazar** el formato de un tipo; al hacerlo, reconoce la estructura del nuevo archivo, la registra como una versión nueva y esa pasa a ser la vigente (ver RF-19 a RF-21). |
 | RF-14 | El sistema debe permitir al Administrador **desactivar** y **reactivar** un tipo. Un tipo desactivado no aparece entre las opciones de los RO. |
 | RF-15 | El sistema debe permitir **eliminar** únicamente los tipos que nunca han sido usados, y debe impedir la eliminación de un tipo en uso, ofreciendo desactivarlo en su lugar. |
+| RF-15a | Mientras no exista la actividad (funcionalidad 003), «nunca usado» significa **sin formato vigente**: un tipo incompleto no pudo ser elegido por ningún RO. Un tipo con formato cargado no se elimina, aunque todavía no lo haya usado nadie. Cuando la 003 introduzca la actividad, la regla se podrá ampliar. |
 | RF-16 | El sistema debe ofrecer a los RO la lista de tipos **activos**, con nombre y descripción, y debe excluir de ella los tipos incompletos y los desactivados. |
 | RF-17 | El sistema debe funcionar con **cualquier** formato Word o Excel que cargue el Administrador, sin depender del caso de referencia (Adapter Reverso) ni de nombres de sección predefinidos (Art. VIII). |
 | RF-18 | Los límites de la carga —tamaño máximo del archivo y extensiones admitidas— deben ser configuración, no valores fijos en el código (Art. V). El tamaño máximo por defecto es **25 MB**. |
@@ -128,6 +132,8 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 - **Archivo que no es Word ni Excel:** se rechaza indicando qué formatos se admiten; el tipo no cambia de estado (RF-04).
 - **Archivo dañado, protegido con contraseña o ilegible:** se rechaza con su motivo. El tipo conserva el formato que tenía antes, o sigue incompleto si no tenía (RF-10).
 - **Archivo válido del que no se reconoce ninguna sección, hoja ni columna:** se informa al Administrador y el tipo no queda disponible para los RO. Un formato sin estructura reconocida no sirve para generar nada.
+- **Word que marca sus secciones con negrita o tamaño de letra, sin estilos de título:** se rechaza como «sin estructura reconocible», y el mensaje dice que se esperaban estilos de título, para que el Administrador los aplique y lo vuelva a cargar (RF-05a). El sistema no intenta deducir qué párrafo era un título.
+- **Hoja de Excel cuya primera fila con contenido es un título o un logo, no los encabezados:** se toma esa fila como encabezados, porque es la regla (RF-05b), y el Administrador lo ve en la pantalla de detalle. Si no corresponde, corrige el archivo y lo vuelve a cargar.
 - **Formato con secciones, hojas o columnas de nombre repetido:** se conservan todas, tal como vienen, sin fusionarlas ni renumerarlas. El orden las distingue (Art. I, RF-06).
 - **Formato con una sección, hoja o columna sin nombre:** se registra como viene, sin inventarle un nombre (RF-11).
 - **Archivo que supera el tamaño admitido:** se rechaza indicando el límite (RF-18).
@@ -162,17 +168,27 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 - **100 % de las cargas inválidas** —extensión no admitida, archivo dañado, archivo protegido, sin estructura reconocible, tamaño excedido— se rechazan con un motivo y dejan el tipo en el estado que tenía antes del intento.
 - **0 tipos incompletos o desactivados** aparecen entre las opciones que puede elegir un RO.
 - Cambiar las extensiones admitidas y el tamaño máximo de carga se logra **sin modificar código** (RF-18).
+- **30 segundos** es el techo de la carga completa —recibir el archivo, reconocer su estructura y guardarla— para cualquier archivo dentro del tamaño admitido, incluido el de 25 MB. Se resuelve en la misma petición: no hay procesamiento en segundo plano.
 - **0 pérdidas al reemplazar:** tras reemplazar el formato de un tipo tres veces, las tres versiones anteriores conservan su archivo original y su estructura reconocida, y se puede decir cuál estaba vigente en cada momento (RF-19, RF-20).
 
 ## 9. Pendientes y preguntas abiertas
 
 > Todo lo que no se sabe se marca aquí como `[NECESITA ACLARACIÓN: ...]`. La spec no pasa a planificación con aclaraciones abiertas que afecten el alcance.
 
-**No quedan aclaraciones abiertas.** Las tres que había se resolvieron el 2026-11-03 y están en el registro al final de este documento. Lo que decidieron:
+**No quedan aclaraciones abiertas.** Hubo dos pasadas: tres aclaraciones el 2026-11-03 y cuatro más el 2026-11-04, todas en el registro al final de este documento.
+
+De la primera pasada:
 
 - El formato de un tipo se **versiona** (RF-19 a RF-21). Fue la decisión que más alcance agregó.
 - La estructura reconocida **no se edita** dentro de la plataforma: se corrige el archivo y se recarga (sección 7).
 - Se admiten **solo `.docx` y `.xlsx`**, con un tamaño máximo por defecto de **25 MB**, configurable (RF-04, RF-18).
+
+De la segunda pasada, que cerró lo que el plan había tenido que suponer:
+
+- Una **sección** de Word es un párrafo con estilo de título, y nada más (RF-05a).
+- Los **encabezados** de una hoja de Excel salen de su primera fila con contenido (RF-05b).
+- **Eliminar** solo alcanza a los tipos sin formato vigente, mientras no exista la actividad (RF-15a).
+- La carga completa tiene un techo de **30 segundos** y se resuelve en la misma petición (sección 8).
 
 Queda un pendiente que no es de esta spec:
 
@@ -195,3 +211,7 @@ Queda un pendiente que no es de esta spec:
 | 2026-11-03 | Al reemplazar el formato de un tipo que ya tiene actividades o documentos generados, ¿qué pasa con ellos? | El formato se **versiona**: cada carga produce una versión, el tipo tiene una sola vigente, y las anteriores conservan su archivo y su estructura. Razón: el Art. IX exige que un documento entregado se pueda rastrear al formato exacto que lo produjo. Agrega RF-19 a RF-21 al alcance. |
 | 2026-11-03 | Si la estructura reconocida no corresponde a lo esperado, ¿el Administrador puede corregirla en la plataforma? | **No.** Corrige el archivo y lo vuelve a cargar. Razón: editarla dentro de la plataforma permitiría que la estructura guardada divergiera del archivo, que es lo que el Art. I no admite. Sin cambio de alcance. |
 | 2026-11-03 | ¿Qué extensiones se admiten y cuál es el tamaño máximo? | Solo **`.docx` y `.xlsx`**; los antiguos `.doc` y `.xls` se rechazan. Tamaño máximo por defecto **25 MB**, configurable. Razón: los formatos actuales de Office se leen de forma predecible, y ahí el Art. I no admite errores. Afina RF-04 y RF-18. |
+| 2026-11-04 | ¿Qué marca una sección dentro de un Word? | **Solo los estilos de título** (`Título 1` a `Título 9`). Ninguna otra marca cuenta. Razón: es determinista y no puede inventar (Art. II); una heurística sobre negritas metería como sección un párrafo que no lo era. Agrega RF-05a. |
+| 2026-11-04 | ¿De qué fila de una hoja de Excel salen los nombres de las columnas? | De la **primera fila con contenido**, registrando cuál fue para que el Administrador lo confirme. Razón: muchos formatos traen un título o un logo arriba, y fijar la fila 1 rechazaría formatos legítimos. Agrega RF-05b. |
+| 2026-11-04 | Sin la actividad (003), el sistema no puede saber si un RO usó un tipo. ¿Qué se puede eliminar hoy? | Solo los tipos **sin formato vigente**. Razón: es lo único de lo que se puede afirmar con certeza que ningún RO lo eligió; la regla se amplía cuando la 003 traiga la actividad. Agrega RF-15a. |
+| 2026-11-04 | ¿Cuánto puede tardar la carga y el análisis de un formato? | Techo de **30 segundos** para cualquier archivo dentro del tamaño admitido, resuelto **en la misma petición**. Razón: cubre con certeza el caso de 25 MB sin introducir procesamiento en segundo plano, que traería complejidad que nadie pidió. Agrega un criterio medible a la sección 8. |

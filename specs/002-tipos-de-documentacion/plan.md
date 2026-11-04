@@ -42,6 +42,7 @@ el Art. IX.
 | Dependencias nuevas | `python-docx>=1.1` y `openpyxl>=3.1`. Ninguna más: no entra `pandas`, ni `markitdown`, ni cliente de LiteLLM | — |
 | Almacenamiento | PostgreSQL para los datos y la estructura reconocida (`JSONB`); sistema de archivos para el archivo original, en carpeta configurable | — |
 | Pruebas | `pytest` en el backend, Playwright en el front. Los tres formatos de prueba se generan con datos ficticios | — |
+| Tiempo de respuesta | Techo de **30 s** para la carga completa, **síncrona** en la misma petición. Sin procesamiento en segundo plano (aclaración del 2026-11-04) | — |
 | Modelos / proveedor | **No aplica.** Esta funcionalidad no llama a ningún modelo (decisión 1 de `research.md`) | — |
 
 No quedan incógnitas abiertas: las diez que había se resolvieron en la Fase 0.
@@ -50,7 +51,7 @@ No quedan incógnitas abiertas: las diez que había se resolvieron en la Fase 0.
 
 | Artículo | ¿Cumple? | Cómo |
 |---|---|---|
-| I — El formato definido manda | Sí | La estructura se lee de forma determinista y se guarda como listas ordenadas en `JSONB`, sin normalizar nada. Las secciones y columnas de nombre repetido se conservan todas; las sin nombre se guardan como `null` sin inventarles uno. La prueba de reconocimiento compara contra la estructura exacta del archivo generado, así que el cumplimiento es verificable y no una opinión |
+| I — El formato definido manda | Sí | Una sección es un párrafo con estilo de título y nada más; los encabezados de una hoja salen de su primera fila con contenido (RF-05a, RF-05b). La estructura se lee de forma determinista y se guarda como listas ordenadas en `JSONB`, sin normalizar nada. Las secciones y columnas de nombre repetido se conservan todas; las sin nombre se guardan como `null` sin inventarles uno. La prueba de reconocimiento compara contra la estructura exacta del archivo generado, así que el cumplimiento es verificable y no una opinión |
 | II — Cero información inventada | Sí | Ningún modelo interviene. Lo que no está en el archivo no aparece en la estructura. Un formato del que no se reconoce nada se rechaza (RF-10) en vez de completarse |
 | III — El RO decide | N.A. | Esta funcionalidad no le pide información al RO: solo le ofrece la lista de tipos activos |
 | IV — Separación de capas | Sí | Toda la lectura de archivos, la validación y la autorización están en el backend. El front no tiene credenciales ni decide permisos: oculta opciones por comodidad, y la barrera es la dependencia del enrutador |
@@ -218,5 +219,5 @@ hacia `formato_version` es cruzada —cada tabla referencia a la otra— así qu
 | Un Word del área marca sus secciones con negrita o tamaño de letra, no con estilos de título | El reconocimiento no encuentra nada y el formato se rechaza, aunque para una persona «tenga secciones» | Es el comportamiento correcto por el Art. II: rechazar e informar antes que adivinar. El mensaje del 422 dice qué se esperaba, para que el Administrador aplique estilos y recargue. **Conviene validar esto temprano con un formato real del área**, porque si es lo habitual, cambia la conversación |
 | La base y el disco se desincronizan: la versión existe y el archivo no | La 006 no podría generar el documento de ese tipo | El hash permite detectarlo. La ruta está encapsulada en `almacen.py`, así que pasar a `BYTEA` más adelante es un cambio local (decisión 6 de `research.md`) |
 | Versiones que se acumulan sin límite | Crecimiento del disco con archivos que nadie consulta | Es deliberado: el Art. IX lo exige. La limpieza depende del pendiente X.4 de la constitución |
-| Un `.xlsx` de 25 MB con muchas hojas tarda en analizarse y la petición se siente colgada | Mala experiencia en la carga | `openpyxl` en modo solo lectura y el análisis una sola vez acotan el costo. Si aparece, se mide antes de agregar procesamiento en segundo plano, que traería complejidad que hoy nadie pidió |
+| Un `.xlsx` de 25 MB con muchas hojas se acerca al techo de 30 s | La carga se sentiría lenta, y pasar de 30 s incumpliría un criterio medible | `openpyxl` en modo solo lectura y el análisis una sola vez acotan el costo. La aclaración del 2026-11-04 cerró la arquitectura: **síncrona siempre**, sin proceso en segundo plano. Una tarea de la fase de validación mide el caso de 25 MB contra el techo, de modo que si no alcanza se sepa antes de cerrar la funcionalidad y no en producción |
 | `pedirApi` hoy serializa a JSON siempre | La carga del archivo no funcionaría | Se extiende para aceptar `FormData` y, en ese caso, no fijar `Content-Type`: el navegador debe poner el suyo con el delimitador. Es aditivo y no altera las llamadas existentes |

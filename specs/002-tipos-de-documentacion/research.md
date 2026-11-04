@@ -38,6 +38,10 @@ spec ya definió qué hacer: rechazar e informar (RF-10), no adivinar.
 **Decisión: `python-docx`, leyendo los párrafos en orden y tomando como sección los que tienen
 estilo de título (`Heading 1` … `Heading 9`, y sus equivalentes en español).**
 
+> Esto dejó de ser un supuesto del plan: la aclaración del 2026-11-04 lo subió a la spec como
+> **RF-05a**. Un párrafo en negrita no es una sección, y un Word sin estilos de título se
+> rechaza con un mensaje que lo explica.
+
 **Por qué.** `python-docx` da acceso al documento como secuencia de párrafos con su estilo, que
 es exactamente el nivel que la spec pide: nombres de sección y su orden (RF-05). No hay que
 interpretar el texto, solo recorrerlo.
@@ -63,6 +67,8 @@ primer nivel. Conservarla no es agregar información, es no perderla.
 
 **Decisión: `openpyxl` en modo solo lectura, tomando las hojas en el orden del libro y, en cada
 hoja, la primera fila no vacía como fila de encabezados.**
+
+> También subió a la spec, como **RF-05b**, en la aclaración del 2026-11-04.
 
 **Por qué.** `openpyxl` expone las hojas en orden y las celdas por coordenada, que es lo que la
 spec pide para Excel: hojas con su orden, y columnas de cada hoja con nombre y orden (RF-05).
