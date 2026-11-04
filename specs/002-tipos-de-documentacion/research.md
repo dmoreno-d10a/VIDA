@@ -80,7 +80,7 @@ primer nivel. Conservarla no es agregar información, es no perderla.
 ## 3. ¿Con qué se lee la estructura de un `.xlsx`?
 
 **Decisión: `openpyxl` en modo solo lectura, tomando las hojas en el orden del libro y, en cada
-hoja, la primera fila no vacía como fila de encabezados.**
+hoja, la primera fila con dos o más celdas con contenido como fila de encabezados.**
 
 > También subió a la spec, como **RF-05b**, en la aclaración del 2026-11-04.
 
@@ -89,7 +89,7 @@ spec pide para Excel: hojas con su orden, y columnas de cada hoja con nombre y o
 El modo solo lectura evita cargar el libro completo en memoria, que con el límite de 25 MB
 importa.
 
-«La primera fila no vacía» es una regla explícita y verificable, no una heurística: muchos
+La regla es explícita y verificable, no una heurística: muchos
 formatos traen una fila de título o un logo arriba. Queda registrada en la estructura reconocida
 —en qué fila se encontraron los encabezados— para que el Administrador pueda confirmarlo
 mirando la pantalla (RF-08) y la decisión no sea invisible.

@@ -153,7 +153,7 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 
 - [ ] **T017** [P] [HU-2] Crear `backend/app/formatos/lector_excel.py`
   - Terminado cuando: devuelve `{"clase": "excel", "hojas": [{"nombre", "fila_de_encabezados", "columnas"}]}` con las hojas en el orden del libro
-  - Terminado cuando: los encabezados salen de la **primera fila con contenido** de cada hoja, y `fila_de_encabezados` deja registrado cuál fue (RF-05b)
+  - Terminado cuando: los encabezados salen de la **primera fila con dos o más celdas con contenido** de cada hoja —o de la primera con una, si ninguna llega a dos—, y `fila_de_encabezados` deja registrado cuál fue (RF-05b)
   - Terminado cuando: usa `openpyxl` en modo solo lectura, y las columnas de nombre repetido se conservan todas
   - Cubre: RF-05, RF-05b, RF-06, RF-11
 
