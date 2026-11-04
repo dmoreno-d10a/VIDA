@@ -239,9 +239,8 @@ por HTTP, que es lo que lo hace intercambiable (Art. V, decisión 11).
 
 ## 11. ¿Cómo entra la IA cuando la lectura determinista no reconoce nada?
 
-**Decisión: un paso de respaldo que propone la estructura, con tres cercos: se le manda texto y
-no el archivo, se descarta lo que no esté en el documento, y nada queda vigente sin que el
-Administrador lo confirme.**
+**Decisión: un paso de respaldo que propone la estructura, con dos cercos: se le manda texto y
+no el archivo, y se descarta lo que no esté en el documento.**
 
 **Por qué hace falta.** La lectura determinista reconoce lo que Word marcó como título. Un
 formato que marque sus secciones con negrita o con tamaño de letra es, para una persona, un

@@ -63,8 +63,9 @@ class Configuracion(BaseSettings):
 
     # --- Respaldo con IA del reconocimiento (spec 002, RF-05c) ---
     # Cuando la lectura del archivo no reconoce ninguna estructura, se le pide
-    # a la IA que proponga una y el Administrador la confirma. El interruptor
-    # permite operar sin VORKAN: apagado, ese formato se rechaza.
+    # a la IA que proponga una; el Administrador la revisa en el detalle del
+    # tipo (RF-08), sin compuerta. El interruptor permite operar sin VORKAN:
+    # apagado, ese formato se rechaza.
     #
     # `modelo_reconocimiento` nombra una TAREA de LiteLLM, no un modelo: qué
     # modelo la atiende se configura allá, y elegirlo es de la 007 (Art. V).

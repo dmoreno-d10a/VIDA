@@ -56,7 +56,7 @@ VIDA_FORMATO_EXTENSIONES=docx,xlsx
 # --- Respaldo con IA (spec 002, RF-05c) ---
 
 # Cuando la lectura del archivo no reconoce ninguna estructura, la IA propone
-# una y el Administrador la confirma. En 0, ese formato se rechaza.
+# una. En 0, ese formato se rechaza.
 VIDA_IA_RESPALDO=1
 
 # LiteLLM, que es por donde se llega a VORKAN. La credencial no tiene valor
