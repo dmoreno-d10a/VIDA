@@ -170,7 +170,7 @@ el respaldo está apagado, o no responde.
 
 Tiene la **misma forma** que la leída del archivo: el `JSONB` no cambia según el origen, y eso es
 a propósito. Las funcionalidades 004, 005 y 006 consumen la estructura sin tener que saber de
-dónde salió; lo que necesite distinguirlo lee `origen`.
+dónde salió, y nada en la base de datos lo distingue (ver más abajo).
 
 En Word, una propuesta trae `nivel` como cualquier sección: la jerarquía es parte de lo que se
 le pide. Lo que la propuesta **no** puede traer es un `nombre` que no aparezca literalmente en el
