@@ -20,9 +20,16 @@ export function MenuPorRol({ rol }: { rol: Rol }) {
           <Link href="/perfil/contrasena">Cambiar mi contraseña</Link>
         </li>
         {rol === "ADMINISTRADOR" ? (
-          <li>
-            <Link href="/administracion/usuarios">Administrar usuarios</Link>
-          </li>
+          <>
+            <li>
+              <Link href="/administracion/usuarios">Administrar usuarios</Link>
+            </li>
+            <li>
+              <Link href="/administracion/tipos-de-documentacion">
+                Tipos de documentación
+              </Link>
+            </li>
+          </>
         ) : null}
       </ul>
     </nav>
