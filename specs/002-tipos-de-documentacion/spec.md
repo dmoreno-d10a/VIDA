@@ -125,7 +125,27 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 | Salida | Archivo de formato original conservado, por versión | `.docx` / `.xlsx` | La funcionalidad 006, que entrega el documento en ese formato |
 | Salida | Mensaje de rechazo con su motivo | Mensaje en pantalla | El Administrador que intentó la carga |
 
-## 6. Casos borde y errores
+## 6. Entidades principales
+
+Los tres conceptos que esta funcionalidad introduce en la plataforma. Se describen por lo que
+**son** y por lo que el negocio exige de ellos; su forma concreta la define `plan.md`.
+
+- **Tipo de documentación.** Una clase de documento que la plataforma puede generar: tiene un
+  nombre único, una descripción y un estado (incompleto, activo o desactivado). Es lo que el RO
+  elige al abrir una actividad. Un tipo sin formato cargado no sirve para nada todavía, y por eso
+  existe el estado incompleto.
+- **Versión del formato.** Cada archivo de formato que el Administrador carga para un tipo, con
+  la estructura que se le reconoció y el momento en que entró. Un tipo tiene **una sola versión
+  vigente** y conserva las anteriores sin alterarlas. Una versión no se edita ni se borra: es el
+  registro de qué estructura mandaba en un momento dado, y reescribirla borraría la trazabilidad
+  del documento que se generó con ella (Art. IX).
+- **Estructura reconocida.** La forma del formato tal como viene en el archivo: en Word, las
+  secciones con su nombre, su nivel y su orden; en Excel, las hojas con su orden y las columnas de
+  cada hoja con su nombre y su orden. Es lo que las funcionalidades 004, 005 y 006 consumen, y
+  pertenece a una versión, no al tipo. Su contenido no se interpreta ni se completa: lo que no
+  está en el archivo no está en ella (Art. I, Art. II).
+
+## 7. Casos borde y errores
 
 - **Tipo creado sin formato:** queda **incompleto**. El Administrador lo ve así en su listado y ningún RO puede elegirlo (RF-03, RF-16).
 - **Nombre de tipo repetido:** no se crea y se indica el motivo (RF-02). Lo mismo al renombrar un tipo existente con el nombre de otro.
@@ -139,13 +159,13 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 - **Archivo que supera el tamaño admitido:** se rechaza indicando el límite (RF-18).
 - **Reemplazo del formato de un tipo que ya se usó:** el formato nuevo queda como versión vigente y **no altera** las versiones anteriores ni lo que se generó con ellas. Un documento ya producido se sigue explicando contra la versión con la que nació (RF-19, RF-20). Atar cada actividad a una versión le corresponde a la funcionalidad 003, que es la que introduce la actividad; esta spec le entrega la versión identificable.
 - **Reemplazo por un archivo idéntico al vigente:** se registra como una versión nueva igual que cualquier otra. Esta spec no compara contenidos para decidir si un archivo cambió o no: eso sería suponer (Art. II).
-- **Estructura reconocida que no corresponde a lo esperado:** el Administrador corrige el archivo y lo vuelve a cargar, lo que produce otra versión. La plataforma no permite editar la estructura reconocida (sección 7).
+- **Estructura reconocida que no corresponde a lo esperado:** el Administrador corrige el archivo y lo vuelve a cargar, lo que produce otra versión. La plataforma no permite editar la estructura reconocida (sección 8).
 - **Eliminación de un tipo en uso:** no se permite; se ofrece desactivarlo (RF-15).
 - **Desactivación de un tipo que un RO tiene abierto en ese momento:** el tipo deja de ofrecerse para nuevas actividades. Qué pasa con una actividad ya abierta lo define la funcionalidad 003, que es la que introduce la actividad; esta spec no la conoce.
 - **Dos Administradores cargando formato al mismo tipo a la vez:** solo una de las cargas queda vigente; el tipo no puede quedar con la estructura de un archivo y el archivo de otro.
 - **Ningún tipo disponible cuando un RO consulta la lista:** se le indica explícitamente, no se le muestra una pantalla vacía (HU-5).
 
-## 7. Fuera de alcance
+## 8. Fuera de alcance
 
 - La **apertura de actividades** y la carga de la información del RO contra un tipo elegido (funcionalidad 003). Aquí solo se entrega la lista de tipos disponibles.
 - El **análisis de faltantes y las preguntas al RO** (004), la **generación y la evaluación** del documento (005) y el **historial y la descarga** (006). Esta spec deja lista la estructura que todas ellas usan, y nada más.
@@ -158,20 +178,20 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 - **Registro de auditoría** de quién creó o cambió cada tipo: coherente con lo decidido en la funcionalidad 001, no se requiere por ahora.
 - La **retención y eliminación** de los archivos de formato cargados, pendiente abierto del Artículo X.4 de la constitución.
 
-## 8. Criterios de éxito medibles
+## 9. Criterios de éxito medibles
 
-- **0 diferencias** entre la estructura reconocida y la del archivo original —en nombres, en cantidad y en orden de secciones, hojas y columnas— verificado en al menos tres formatos distintos.
-- La funcionalidad se verifica con **al menos dos formatos ajenos al caso de referencia**: un Word ficticio y un Excel ficticio, además del Adapter Reverso (Art. VIII). Los casos de prueba usan solo datos ficticios (Art. X.3).
-- **1 sola vez** se analiza cada formato: consultar el detalle de un tipo o usarlo en una generación posterior no vuelve a procesar el archivo (Art. VI, RF-07).
-- **0 elementos inventados:** ninguna sección, hoja o columna aparece en la estructura reconocida sin existir en el archivo, ni recibe un nombre que el archivo no traía.
-- **0 opciones** de administración de tipos visibles o alcanzables para un usuario con rol RO, incluyendo intentos de acceso directo.
-- **100 % de las cargas inválidas** —extensión no admitida, archivo dañado, archivo protegido, sin estructura reconocible, tamaño excedido— se rechazan con un motivo y dejan el tipo en el estado que tenía antes del intento.
-- **0 tipos incompletos o desactivados** aparecen entre las opciones que puede elegir un RO.
-- Cambiar las extensiones admitidas y el tamaño máximo de carga se logra **sin modificar código** (RF-18).
-- **30 segundos** es el techo de la carga completa —recibir el archivo, reconocer su estructura y guardarla— para cualquier archivo dentro del tamaño admitido, incluido el de 25 MB. Se resuelve en la misma petición: no hay procesamiento en segundo plano.
-- **0 pérdidas al reemplazar:** tras reemplazar el formato de un tipo tres veces, las tres versiones anteriores conservan su archivo original y su estructura reconocida, y se puede decir cuál estaba vigente en cada momento (RF-19, RF-20).
+- **CE-01 · 0 diferencias** entre la estructura reconocida y la del archivo original —en nombres, en cantidad y en orden de secciones, hojas y columnas— verificado en al menos tres formatos distintos.
+- **CE-02 ·** la funcionalidad se verifica con **al menos dos formatos ajenos al caso de referencia**: un Word ficticio y un Excel ficticio, además del Adapter Reverso (Art. VIII). Los casos de prueba usan solo datos ficticios (Art. X.3).
+- **CE-03 · 1 sola vez** se analiza cada formato: consultar el detalle de un tipo o usarlo en una generación posterior no vuelve a procesar el archivo (Art. VI, RF-07).
+- **CE-04 · 0 elementos inventados:** ninguna sección, hoja o columna aparece en la estructura reconocida sin existir en el archivo, ni recibe un nombre que el archivo no traía.
+- **CE-05 · 0 opciones** de administración de tipos visibles o alcanzables para un usuario con rol RO, incluyendo intentos de acceso directo.
+- **CE-06 · 100 % de las cargas inválidas** —extensión no admitida, archivo dañado, archivo protegido, sin estructura reconocible, tamaño excedido— se rechazan con un motivo y dejan el tipo en el estado que tenía antes del intento.
+- **CE-07 · 0 tipos incompletos o desactivados** aparecen entre las opciones que puede elegir un RO.
+- **CE-08 ·** cambiar las extensiones admitidas y el tamaño máximo de carga se logra **sin modificar código** (RF-18).
+- **CE-09 · 30 segundos** es el techo de la carga completa —recibir el archivo, reconocer su estructura y guardarla— para cualquier archivo dentro del tamaño admitido, incluido el de 25 MB. Se resuelve en la misma petición: no hay procesamiento en segundo plano.
+- **CE-10 · 0 pérdidas al reemplazar:** tras reemplazar el formato de un tipo tres veces, las tres versiones anteriores conservan su archivo original y su estructura reconocida, y se puede decir cuál estaba vigente en cada momento (RF-19, RF-20).
 
-## 9. Pendientes y preguntas abiertas
+## 10. Pendientes y preguntas abiertas
 
 > Todo lo que no se sabe se marca aquí como `[NECESITA ACLARACIÓN: ...]`. La spec no pasa a planificación con aclaraciones abiertas que afecten el alcance.
 
@@ -180,7 +200,7 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 De la primera pasada:
 
 - El formato de un tipo se **versiona** (RF-19 a RF-21). Fue la decisión que más alcance agregó.
-- La estructura reconocida **no se edita** dentro de la plataforma: se corrige el archivo y se recarga (sección 7).
+- La estructura reconocida **no se edita** dentro de la plataforma: se corrige el archivo y se recarga (sección 8).
 - Se admiten **solo `.docx` y `.xlsx`**, con un tamaño máximo por defecto de **25 MB**, configurable (RF-04, RF-18).
 
 De la segunda pasada, que cerró lo que el plan había tenido que suponer:
@@ -188,19 +208,19 @@ De la segunda pasada, que cerró lo que el plan había tenido que suponer:
 - Una **sección** de Word es un párrafo con estilo de título, y nada más (RF-05a).
 - Los **encabezados** de una hoja de Excel salen de su primera fila con contenido (RF-05b).
 - **Eliminar** solo alcanza a los tipos sin formato vigente, mientras no exista la actividad (RF-15a).
-- La carga completa tiene un techo de **30 segundos** y se resuelve en la misma petición (sección 8).
+- La carga completa tiene un techo de **30 segundos** y se resuelve en la misma petición (sección 9).
 
 Queda un pendiente que no es de esta spec:
 
 - **PENDIENTE (constitución, Art. X.4)** — tiempo de retención y eliminación de los archivos cargados. Aplica también a los archivos de formato de esta funcionalidad, y ahora a sus versiones anteriores. Se resuelve enmendando la constitución, no aquí.
 
-## 10. Verificación contra la constitución
+## 11. Verificación contra la constitución
 
 - [x] Respeta la estructura de los formatos definidos (Art. I) — es el eje de la funcionalidad: la estructura se reconoce y se conserva tal como viene, sin agregar, quitar, renombrar ni reordenar nada (RF-05, RF-06), y el Administrador puede comprobarlo (RF-08).
 - [x] No exige completar datos que no estén en los insumos ni en las respuestas del RO (Art. II y III) — el sistema no inventa nombres de secciones, hojas ni columnas; lo que no viene en el archivo no se completa (RF-11). Esta funcionalidad no le pide información al RO.
-- [x] Contempla al menos un caso distinto al de referencia (Art. VIII) — se verifica con un Word ficticio y un Excel ficticio además del Adapter Reverso, y ningún nombre de sección queda predefinido en la plataforma (RF-17, sección 8).
+- [x] Contempla al menos un caso distinto al de referencia (Art. VIII) — se verifica con un Word ficticio y un Excel ficticio además del Adapter Reverso, y ningún nombre de sección queda predefinido en la plataforma (RF-17, sección 9).
 - [x] No define tecnologías ni implementación (Art. XI) — no se menciona ningún mecanismo de lectura de archivos, almacenamiento ni estructura de código; el *cómo* queda para `plan.md`.
-- [x] Analiza cada formato una sola vez (Art. VI) — RF-07 y el criterio correspondiente de la sección 8.
+- [x] Analiza cada formato una sola vez (Art. VI) — RF-07 y el criterio correspondiente de la sección 9.
 - [x] Valores editables fuera del código (Art. V) — extensiones admitidas y tamaño máximo son configuración (RF-18).
 - [x] Trazabilidad (Art. IX) — el versionado del formato es lo que permite rastrear un documento generado hasta la estructura exacta que lo produjo, incluso después de que el Administrador reemplace el formato (RF-19, RF-20).
 
@@ -214,4 +234,4 @@ Queda un pendiente que no es de esta spec:
 | 2026-11-04 | ¿Qué marca una sección dentro de un Word? | **Solo los estilos de título** (`Título 1` a `Título 9`). Ninguna otra marca cuenta. Razón: es determinista y no puede inventar (Art. II); una heurística sobre negritas metería como sección un párrafo que no lo era. Agrega RF-05a. |
 | 2026-11-04 | ¿De qué fila de una hoja de Excel salen los nombres de las columnas? | De la **primera fila con contenido**, registrando cuál fue para que el Administrador lo confirme. Razón: muchos formatos traen un título o un logo arriba, y fijar la fila 1 rechazaría formatos legítimos. Agrega RF-05b. |
 | 2026-11-04 | Sin la actividad (003), el sistema no puede saber si un RO usó un tipo. ¿Qué se puede eliminar hoy? | Solo los tipos **sin formato vigente**. Razón: es lo único de lo que se puede afirmar con certeza que ningún RO lo eligió; la regla se amplía cuando la 003 traiga la actividad. Agrega RF-15a. |
-| 2026-11-04 | ¿Cuánto puede tardar la carga y el análisis de un formato? | Techo de **30 segundos** para cualquier archivo dentro del tamaño admitido, resuelto **en la misma petición**. Razón: cubre con certeza el caso de 25 MB sin introducir procesamiento en segundo plano, que traería complejidad que nadie pidió. Agrega un criterio medible a la sección 8. |
+| 2026-11-04 | ¿Cuánto puede tardar la carga y el análisis de un formato? | Techo de **30 segundos** para cualquier archivo dentro del tamaño admitido, resuelto **en la misma petición**. Razón: cubre con certeza el caso de 25 MB sin introducir procesamiento en segundo plano, que traería complejidad que nadie pidió. Agrega un criterio medible a la sección 9. |

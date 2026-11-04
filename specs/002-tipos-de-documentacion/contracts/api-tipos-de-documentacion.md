@@ -118,7 +118,7 @@ archivo (RF-08):
 | `415` | Extensión no admitida, o la firma no corresponde a un archivo de Office actual | `Solo se admiten formatos de Word (.docx) y Excel (.xlsx).` | RF-04 |
 | `422` | Se pudo abrir, pero no se reconoció ninguna sección, hoja ni columna | `No se reconoció ninguna estructura en el archivo. Revisa que el formato tenga secciones con estilo de título, o encabezados de columna.` | RF-10 |
 | `422` | Dañado, protegido con contraseña o ilegible | `No se pudo leer el archivo. Puede estar dañado o protegido con contraseña.` | RF-10 |
-| `409` | Otra carga sobre el mismo tipo está en curso | `Hay otra carga de formato en curso para este tipo. Intenta de nuevo en un momento.` | sección 6 |
+| `409` | Otra carga sobre el mismo tipo está en curso | `Hay otra carga de formato en curso para este tipo. Intenta de nuevo en un momento.` | sección 7 |
 
 **En todos los casos de error el tipo queda como estaba** (RF-10): conserva su versión vigente,
 o sigue incompleto. El `413` se responde **mientras** se recibe el archivo, no después.

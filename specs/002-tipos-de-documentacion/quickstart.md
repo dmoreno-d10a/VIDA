@@ -118,7 +118,7 @@ Vuelve a abrir el detalle: debe mostrar exactamente lo mismo, sin volver a proce
 - Consultar la versión 1 sigue devolviendo **su** estructura, la original.
 
 Repite el reemplazo con el mismo archivo otra vez: debe crear una versión 3, sin comparar
-contenidos para decidir si «cambió» (sección 6 de la spec).
+contenidos para decidir si «cambió» (sección 7 de la spec).
 
 Después desactiva el tipo, reactívalo, e intenta eliminarlo: debe negarse y ofrecerte
 desactivarlo.
@@ -159,7 +159,7 @@ genera el archivo.
 
 ## 7. Qué debería quedar cierto al terminar
 
-Son los criterios medibles de la sección 8 de la spec, en orden de verificación:
+Son los criterios medibles de la sección 9 de la spec, en orden de verificación:
 
 - [ ] 0 diferencias entre la estructura reconocida y la del archivo, en los tres casos
 - [ ] 0 elementos inventados: ninguna sección, hoja o columna que el archivo no traiga

@@ -85,7 +85,7 @@ mirando la pantalla (RF-08) y la decisión no sea invisible.
 - **`pandas.read_excel`.** Arrastra pandas entero por conveniencia, infiere tipos de dato que
   nadie pidió y renombra las columnas duplicadas (`Nombre`, `Nombre.1`), que es exactamente lo
   que el Art. I prohíbe. La spec dice que las columnas de nombre repetido se conservan todas, tal
-  como vienen (sección 6).
+  como vienen (sección 7).
 - **Suponer que los encabezados están siempre en la fila 1.** Rechazaría formatos legítimos.
 
 ## 4. ¿Qué se valida antes de leer el archivo?
@@ -172,7 +172,7 @@ decir, aparentemente incompleto.
 fila del tipo (`SELECT … FOR UPDATE`), y el archivo se escribe en disco **antes** de abrirla.**
 
 **Por qué.** La spec exige que el tipo no quede con la estructura de un archivo y el archivo de
-otro (sección 6). Tomar el candado del tipo serializa las dos cargas: la segunda espera y queda
+otro (sección 7). Tomar el candado del tipo serializa las dos cargas: la segunda espera y queda
 como versión posterior. Y escribir el archivo primero —con su nombre derivado del hash, que no
 colisiona— mantiene la transacción corta: dentro de ella solo hay inserciones, no entrada y
 salida de disco.
@@ -202,7 +202,7 @@ produce, de modo que la prueba compara contra algo legible y no contra un valor 
 | Caso | Archivo | Para qué |
 |---|---|---|
 | Referencia | Word con la estructura del Adapter Reverso, contenido ficticio | Que el formato que el área usa hoy se reconozca bien |
-| Generalización 1 | Word ficticio de otra forma (otra jerarquía, títulos repetidos, uno sin nombre) | Art. VIII, y los casos borde de la sección 6 |
+| Generalización 1 | Word ficticio de otra forma (otra jerarquía, títulos repetidos, uno sin nombre) | Art. VIII, y los casos borde de la sección 7 |
 | Generalización 2 | Excel ficticio (varias hojas, encabezados que no están en la fila 1, columnas repetidas) | Art. VIII en la rama de Excel |
 
 **Qué se descartó.** Cometer una copia anonimizada del Adapter Reverso. Anonimizar un documento

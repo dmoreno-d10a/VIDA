@@ -39,7 +39,8 @@ dejar las dependencias y la configuración listas.
 
 - [ ] **T002** Resolver en `spec.md` los cuatro vacíos de la checklist que bloquean la implementación
   - Terminado cuando: la spec responde (a) cuáles son los «equivalentes en otros idiomas» de `Título 1`…`Título 9` que se reconocen —CHK008—, (b) dónde se miden los 30 s: proceso en el servidor o punta a punta —CHK019—, (c) la regla de un nombre válido y si la comparación ignora mayúsculas y acentos —CHK011, CHK012— y (d) la longitud máxima del nombre y la descripción —CHK001—
-  - Terminado cuando: los ítems correspondientes de [`checklists/requisitos.md`](./checklists/requisitos.md) quedan marcados por quien revise, no por quien implementa (Art. VII)
+  - Terminado cuando: cada respuesta queda escrita en la spec como requerimiento, no como nota al margen
+  - El **marcado** de los ítems CHK001, CHK008, CHK011, CHK012 y CHK019 no es parte de esta tarea: lo hace quien revise, en T039 (Art. VII)
   - Cubre: RF-02, RF-05a
 
 - [ ] **T003** [P] Agregar `python-docx>=1.1` y `openpyxl>=3.1` a `backend/pyproject.toml`
@@ -116,7 +117,7 @@ un RO no alcanza ninguna de esas rutas.
 
 - [ ] **T014** [P] [HU-1] Crear `backend/tests/test_tipos_de_documentacion.py` con las pruebas de creación y listado
   - Terminado cuando: cubre crear, nombre repetido en otras mayúsculas, nombre vacío, listado ordenado, y que un RO reciba `403` en **todas** las rutas del enrutador
-  - Cubre: RF-01, RF-02, criterio «0 opciones de administración alcanzables para un RO»
+  - Cubre: RF-01, RF-02, CE-05
 
 - [ ] **T015** [HU-1] Crear la pantalla de listado en `frontend/app/(privado)/administracion/tipos-de-documentacion/page.tsx` y la opción en `frontend/app/componentes/menu-por-rol.tsx`
   - Terminado cuando: el Administrador ve los tipos con su estado, puede crear uno, y un tipo incompleto se muestra como tal con el aviso de que todavía no puede usarse
@@ -161,13 +162,13 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
   - Terminado cuando: compara la estructura reconocida de los **tres** formatos generados contra la esperada que exporta T009: nombres, cantidad, orden y nivel
   - Terminado cuando: cubre los cuatro rechazos —extensión no admitida, `.doc` renombrado a `.docx`, archivo sobre el límite, Word sin estilos de título— y que el tipo quede intacto en cada uno
   - Terminado cuando: cubre el título sin nombre, los nombres repetidos y la hoja con encabezados en la fila 3
-  - Cubre: criterios «0 diferencias», «0 elementos inventados» y «100 % de las cargas inválidas rechazadas»; Art. I, II, VIII
+  - Cubre: RF-17, CE-01, CE-04, CE-06; Art. I, II, VIII
 
-- [ ] **T021** [HU-2] Extender `frontend/lib/api.ts` para aceptar `FormData`, y agregar la carga del archivo a la pantalla de detalle
+- [ ] **T021** [HU-2] Extender `frontend/lib/api.ts` para aceptar `FormData`
   - Terminado cuando: cuando el cuerpo es un `FormData`, **no** fija `Content-Type`: el navegador tiene que poner el suyo con el delimitador
   - Terminado cuando: las llamadas JSON que ya existen siguen funcionando sin cambios
-  - Terminado cuando: el mensaje de error del backend se muestra tal como viene en `detalle`
   - Cubre: HU-2, Art. IV
+  - La carga desde la pantalla es T023a, porque la pantalla de detalle no existe hasta T023
 
 ## Fase 6 — HU-3: Confirmar la estructura reconocida (Prioridad: P2)
 
@@ -186,9 +187,15 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
   - Terminado cuando: un título sin nombre se muestra como tal, no como un espacio en blanco que parezca un error
   - Cubre: HU-3, RF-08
 
+- [ ] **T023a** [HU-3] Agregar la carga y el reemplazo del formato a la pantalla de detalle
+  - Terminado cuando: el Administrador carga un archivo desde el detalle del tipo, usando el `FormData` que habilitó T021
+  - Terminado cuando: el mensaje de error del backend se muestra tal como viene en `detalle`, sin reescribirlo en el front
+  - Terminado cuando: mientras se analiza el formato la pantalla indica que está trabajando; con un techo de 30 s la espera es parte de la experiencia (CHK025)
+  - Cubre: HU-2, HU-3, Art. IV
+
 - [ ] **T024** [P] [HU-3] Agregar a `test_reconocimiento_de_formato.py` la prueba de que el formato se analiza una sola vez
   - Terminado cuando: consultar el detalle dos veces no vuelve a abrir el archivo, verificado de forma observable y no por inspección del código
-  - Cubre: Art. VI, RF-07, criterio «1 sola vez»
+  - Cubre: RF-07, CE-03, Art. VI
 
 ## Fase 7 — HU-4: Mantener los tipos de documentación (Prioridad: P2)
 
@@ -210,7 +217,7 @@ anteriores siguen enteras.
   - Terminado cuando: tras **tres** reemplazos, las tres versiones anteriores conservan su archivo original, su hash y su estructura, y se puede decir cuál estaba vigente en cada momento
   - Terminado cuando: reemplazar por un archivo **idéntico** al vigente crea una versión nueva igual que cualquier otra, sin comparar contenidos
   - Terminado cuando: un reemplazo por un archivo inválido deja el tipo con la versión que ya tenía
-  - Cubre: RF-13, RF-19, RF-20, criterio «0 pérdidas al reemplazar», Art. IX
+  - Cubre: RF-13, RF-19, RF-20, CE-10, Art. IX
 
 - [ ] **T028** [HU-4] Agregar al front el reemplazo del formato, el historial de versiones, la desactivación y la eliminación
   - Terminado cuando: el historial muestra cuál es la vigente y desde cuándo, y permite consultar la estructura de una anterior
@@ -231,28 +238,36 @@ anteriores siguen enteras.
   - Terminado cuando: no expone estructura, historial, versiones, tipos incompletos ni desactivados, **ni filtrando ni pidiendo a mano**
   - Cubre: RF-16
 
+- [ ] **T030a** [P] [HU-5] Crear `backend/tests/test_tipos_disponibles.py`
+  - Terminado cuando: un RO autenticado recibe **solo** los tipos activos, y la respuesta no trae estructura, historial ni versiones
+  - Terminado cuando: un tipo **incompleto** y uno **desactivado** no aparecen en la respuesta, comprobado con los dos casos en la misma base
+  - Terminado cuando: sin sesión la ruta responde `401`, y un Administrador también la puede consultar
+  - Terminado cuando: con ningún tipo activo la respuesta es una lista vacía, no un error
+  - Cubre: RF-16, CE-07
+  - Es la prueba que faltaba: HU-5 era la única historia sin pruebas de backend, y en este proyecto no son opcionales
+
 - [ ] **T031** [P] [HU-5] Agregar al front la lista de tipos disponibles para el RO
   - Terminado cuando: cuando la lista viene vacía, se muestra el mensaje explícito de que no hay tipos y que debe solicitarlos al Administrador, no una pantalla vacía (HU-5)
   - Cubre: HU-5, RF-16
 
 - [ ] **T032** [P] [HU-5] Crear `frontend/e2e/tipos-de-documentacion.spec.ts`
   - Terminado cuando: cubre el recorrido del Administrador —crear, cargar, ver la estructura, reemplazar— y que el RO no vea la opción en el menú ni alcance la dirección escrita a mano
-  - Cubre: criterio «0 opciones de administración alcanzables para un RO»
+  - Cubre: CE-05
 
 ## Fase 9 — Validación
 
 - [ ] **T033** Ejecutar el caso de referencia y registrar el resultado
   - Terminado cuando: la estructura reconocida del Word de referencia coincide exactamente con la esperada, y queda registrado en el PR
-  - Cubre: criterio «0 diferencias»
+  - Cubre: CE-01
 
 - [ ] **T034** Ejecutar los dos casos de generalización y registrar el resultado
   - Terminado cuando: el Word y el Excel ajenos al caso de referencia se reconocen bien, con sus casos borde incluidos (Art. VIII)
-  - Cubre: Art. VIII, criterio «0 diferencias»
+  - Cubre: RF-17, CE-01, CE-02; Art. VIII
 
 - [ ] **T035** **Medir la carga de un archivo de 25 MB contra el techo de 30 segundos**
   - Terminado cuando: está medido y registrado cuánto tarda la carga completa de un `.xlsx` de 25 MB con muchas hojas, y dónde se midió —según lo que T002 haya fijado: proceso en el servidor o punta a punta—
   - Terminado cuando: si se pasa de 30 s, **se detiene el cierre de la funcionalidad** y se decide con el responsable, en vez de descubrirlo en producción
-  - Cubre: criterio de los 30 s, riesgo del plan
+  - Cubre: CE-09, riesgo del plan
 
 - [ ] **T036** Verificar que no haya datos inventados y que todo sea rastreable
   - Terminado cuando: ninguna sección, hoja o columna aparece en la estructura sin existir en el archivo, ni recibe un nombre que el archivo no traía (Art. II)
@@ -265,7 +280,7 @@ anteriores siguen enteras.
 
 - [ ] **T038** Verificar que las extensiones admitidas y el tamaño máximo se cambian sin tocar código
   - Terminado cuando: bajar `VIDA_FORMATO_MB_MAX` y reiniciar cambia el límite efectivo, comprobado con una carga
-  - Cubre: RF-18, Art. V
+  - Cubre: RF-18, CE-08, Art. V
 
 ## Fase 10 — Cierre
 
@@ -302,13 +317,16 @@ flowchart LR
   V --> C[Fase 10<br/>Cierre]
   T001 -.bloquea.-> T016
   T001 -.bloquea.-> T017
+  T021 -.bloquea.-> T023a
 ```
 
 - **HU-2 necesita HU-1:** no se puede cargar el formato de un tipo que no existe.
 - **HU-3 y HU-4 necesitan HU-2:** no hay estructura que mostrar ni versión que reemplazar.
 - **HU-5 solo necesita HU-1 y HU-2:** es independiente de HU-3 y HU-4, así que puede adelantarse
   si conviene desbloquear la 003.
-- **T001 bloquea los dos lectores.** Es la única dependencia que atraviesa fases.
+- **T001 bloquea los dos lectores.** Es la dependencia más importante que atraviesa fases.
+- **T021 bloquea T023a:** la carga desde la pantalla necesita el `FormData` de `lib/api.ts` y la
+  pantalla de detalle de T023, que está en la fase siguiente.
 
 ## Qué se puede hacer en paralelo
 
@@ -319,11 +337,11 @@ flowchart LR
 | 3 | T009, T010 | El generador y el `conftest` no se tocan |
 | 5 | T017, T020 | El lector de Excel y las pruebas pueden escribirse a la vez una vez fijada la forma de la estructura |
 | 7 | T027, T029 | Dos archivos de prueba distintos |
-| 8 | T031, T032 | Pantalla y prueba de extremo a extremo |
+| 8 | T030a, T031, T032 | Pruebas de backend, pantalla y prueba de extremo a extremo |
 
 ## Estrategia de entrega
 
-**MVP = Fases 1 a 5** (T001 a T021). Al terminarlas, un Administrador crea un tipo, carga su
+**MVP = Fases 1 a 5** (T001 a T021; la carga desde la pantalla llega con T023a). Al terminarlas, un Administrador crea un tipo, carga su
 formato y el sistema reconoce su estructura. Es lo mínimo que entrega valor y lo que permite
 empezar a validar el Art. I con formatos reales.
 

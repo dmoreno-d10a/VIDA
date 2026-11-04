@@ -143,7 +143,7 @@ inventa un nombre (RF-11). La posición en la lista lo identifica.
 - `fila_de_encabezados` deja a la vista qué fila se tomó, para que el Administrador lo confirme
   (RF-08) y la decisión no quede escondida.
 - `"Campo"` aparece dos veces porque así viene en el archivo: las columnas de nombre repetido se
-  conservan todas, sin fusionarlas ni renumerarlas (sección 6 de la spec).
+  conservan todas, sin fusionarlas ni renumerarlas (sección 7 de la spec).
 - `columnas: []` es una hoja sin encabezados. Es válida; lo que no es válido es un formato del
   que no se reconozca **nada** (ver abajo).
 
