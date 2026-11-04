@@ -17,22 +17,33 @@ A futuro, la plataforma sumará otros módulos para los RO, como pruebas de carg
 Constitución → Especificación → Planificación → Tareas → Implementación
 ```
 
-| Fase | Pregunta que responde | Archivo |
-|---|---|---|
-| Constitución | ¿Qué principios no se negocian? | `sdd/constitucion.md` (una para todo el proyecto) |
-| Especificación | ¿Qué necesitamos y por qué? | `specs/NNN-nombre/spec.md` |
-| Planificación | ¿Cómo lo vamos a construir? | `specs/NNN-nombre/plan.md` |
-| Tareas | ¿En qué pasos verificables? | `specs/NNN-nombre/tareas.md` |
-| Implementación | Construcción tarea por tarea | Código y commits en la rama |
+| Fase | Pregunta que responde | Archivo | Skill |
+|---|---|---|---|
+| Constitución | ¿Qué principios no se negocian? | `.specify/memory/constitution.md` (una para todo el proyecto) | `/speckit-constitution` |
+| Especificación | ¿Qué necesitamos y por qué? | `specs/NNN-nombre/spec.md` | `/speckit-specify`, `/speckit-clarify` |
+| Planificación | ¿Cómo lo vamos a construir? | `specs/NNN-nombre/plan.md` | `/speckit-plan` |
+| Tareas | ¿En qué pasos verificables? | `specs/NNN-nombre/tasks.md` | `/speckit-tasks`, `/speckit-checklist`, `/speckit-analyze` |
+| Implementación | Construcción tarea por tarea | Código y commits en la rama | `/speckit-implement` |
 
-**Varias funcionalidades pueden avanzar al mismo tiempo**, una por persona y cada una en su rama. La única condición: no se **implementa** una funcionalidad cuyas dependencias no estén integradas en `main`. El [mapa de funcionalidades](sdd/mapa-funcionalidades.md) dice de cuál depende cada una.
+El flujo lo gobierna **[GitHub Spec Kit](https://github.com/github/spec-kit)**. Las plantillas y la
+constitución están en español, en `.specify/templates/overrides/` y `.specify/memory/`; el motor de
+Spec Kit (`.specify/scripts/`, `.claude/skills/`) se deja tal como viene, para poder actualizarlo.
+
+**Varias funcionalidades pueden avanzar al mismo tiempo**, una por persona y cada una en su rama. La única condición: no se **implementa** una funcionalidad cuyas dependencias no estén integradas en `main`. El [mapa de funcionalidades](.specify/memory/mapa-funcionalidades.md) dice de cuál depende cada una.
 
 Escribir la **spec** y el **plan** nunca está bloqueado: no necesitan el código de la funcionalidad anterior. Así, mientras alguien implementa la 002, otra persona puede dejar listas las specs de la 003 y la 004.
 
-Antes de repartir trabajo, lee [CONTRIBUTING.md](CONTRIBUTING.md#trabajo-en-paralelo): ahí están las tres cosas que chocan cuando dos ramas avanzan a la vez (numeración de specs, migraciones y archivos compartidos).
+Cada rama se trabaja en **su propio worktree**, con su `.env`, su base de datos y sus
+dependencias, así que dos funcionalidades pueden estar corriendo a la vez sin estorbarse:
+
+```bash
+bash scripts/nuevo-worktree.sh 002
+```
+
+Antes de repartir trabajo, lee [CONTRIBUTING.md](CONTRIBUTING.md#trabajo-en-paralelo): ahí están los worktrees y las tres cosas que chocan cuando dos ramas avanzan a la vez (numeración de specs, migraciones y archivos compartidos).
 
 **Herramientas**
-- **Desarrollo:** Claude Code, con los comandos `/sdd-*` de `.claude/commands/`.
+- **Desarrollo:** Claude Code, con las skills `/speckit-*` de GitHub Spec Kit.
 - **Modelos en ejecución:** LiteLLM → Vorkan Gateway, con el modelo configurable por tarea.
 
 ## Levantar la plataforma
@@ -122,12 +133,24 @@ claude
 Dentro de Claude Code:
 
 ```
-/sdd-especificar <descripción de la funcionalidad>
-/sdd-aclarar
-/sdd-planificar
-/sdd-tareas
-/sdd-implementar
+/speckit-specify <descripción de la funcionalidad>
+/speckit-clarify
+/speckit-plan
+/speckit-tasks
+/speckit-analyze      # revisa que spec, plan y tareas digan lo mismo
+/speckit-implement
 ```
+
+`/speckit-specify` crea la rama `feature/NNN-nombre` y la carpeta de la spec. Para trabajarla en
+paralelo con otra funcionalidad, móntala en su propio worktree:
+
+```bash
+bash scripts/nuevo-worktree.sh NNN --con-base
+```
+
+Eso deja una carpeta aparte con su `.env`, su PostgreSQL en otro puerto, su `.venv` y sus
+`node_modules`. Los detalles están en
+[CONTRIBUTING.md](CONTRIBUTING.md#trabajo-en-paralelo).
 
 ## Estructura actual
 
@@ -137,11 +160,14 @@ vida/
 ├── CONTRIBUTING.md        # Ramas, commits y Pull Requests
 ├── .env.ejemplo           # Plantilla de variables de entorno (sin secretos)
 ├── docker-compose.yml     # PostgreSQL para desarrollo
-├── .claude/commands/      # Comandos /sdd-* del flujo
-├── sdd/
-│   ├── constitucion.md    # Principios no negociables (v1.0.0)
-│   ├── mapa-funcionalidades.md  # Funcionalidades del módulo de documentación (v1.0)
-│   └── plantillas/        # spec.md, plan.md, tareas.md
+├── .claude/skills/        # Skills /speckit-* (GitHub Spec Kit, sin modificar)
+├── .specify/              # Motor de Spec Kit
+│   ├── memory/
+│   │   ├── constitution.md         # Principios no negociables (v1.0.0)
+│   │   └── mapa-funcionalidades.md # Funcionalidades del módulo (v1.0)
+│   ├── templates/overrides/        # Plantillas del proyecto, en español
+│   ├── scripts/           # Motor: no se edita a mano
+│   └── extensions/git/    # Ramas feature/NNN-nombre
 ├── specs/                 # Una carpeta por especificación
 ├── backend/               # FastAPI: toda la lógica y las credenciales (Art. IV)
 │   ├── app/
@@ -156,7 +182,7 @@ vida/
 │   ├── app/               # Pantallas
 │   ├── lib/api.ts         # Único punto de llamada al backend
 │   └── e2e/               # Playwright
-└── scripts/               # nueva-spec.sh
+└── scripts/               # numero-de-spec.sh, nuevo-worktree.sh
 ```
 
 ## Estado

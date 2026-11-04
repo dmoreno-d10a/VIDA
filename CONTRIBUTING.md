@@ -9,35 +9,85 @@
 | `fix/NNN-descripcion` | Corrección sobre una spec ya integrada. `NNN` es la spec que se corrige. | `main` | `main` vía PR |
 | `constitucion/vX.Y.Z` | Enmienda a la constitución. | `main` | `main` vía PR |
 
-- Las ramas `feature/` se crean **solo** con `bash scripts/nueva-spec.sh <nombre>` o con `/sdd-especificar`, para que la numeración no se repita.
+- Las ramas `feature/` se crean **solo** con `/speckit-specify`, para que la numeración no se repita.
+- Cada rama se trabaja en su propio worktree, creado con `bash scripts/nuevo-worktree.sh <NNN>`.
 - Antes de abrir el PR, actualiza tu rama con `main` (`git pull --rebase origin main`).
 - Una rama se elimina después de integrarse.
 
 ## Trabajo en paralelo
 
-Varias funcionalidades pueden avanzar al mismo tiempo, una por persona y cada una en su rama. Dos reglas y tres cuidados.
+Varias funcionalidades pueden avanzar al mismo tiempo, una por persona y cada una en su rama. Dos reglas, un worktree por rama y tres cuidados.
 
 **Las dos reglas**
 
-1. **No se implementa una funcionalidad cuyas dependencias no estén integradas en `main`.** De cuál depende cada una lo dice [`sdd/mapa-funcionalidades.md`](sdd/mapa-funcionalidades.md). Hoy, por ejemplo, la 003 no se puede implementar hasta que la 002 esté en `main`.
-2. **Escribir la spec y el plan nunca está bloqueado.** No necesitan el código de la funcionalidad anterior. Lo que espera es `/sdd-implementar`, no `/sdd-especificar`. Mientras alguien implementa, otra persona puede dejar listas las especificaciones que vienen.
+1. **No se implementa una funcionalidad cuyas dependencias no estén integradas en `main`.** De cuál depende cada una lo dice [`.specify/memory/mapa-funcionalidades.md`](.specify/memory/mapa-funcionalidades.md). Hoy, por ejemplo, la 003 no se puede implementar hasta que la 002 esté en `main`.
+2. **Escribir la spec y el plan nunca está bloqueado.** No necesitan el código de la funcionalidad anterior. Lo que espera es `/speckit-implement`, no `/speckit-specify`. Mientras alguien implementa, otra persona puede dejar listas las especificaciones que vienen.
+
+**Un worktree por rama**
+
+Un worktree es una copia de trabajo más del mismo repositorio, en otra carpeta y con otra rama
+puesta. Sirve para tener dos funcionalidades abiertas a la vez sin cambiar de rama ni perder el
+entorno de la otra:
+
+```bash
+bash scripts/nuevo-worktree.sh 002              # la rama feature/002-... ya debe existir
+bash scripts/nuevo-worktree.sh 002 --con-base   # además levanta PostgreSQL y aplica migraciones
+```
+
+El script hace lo que `git worktree add` no hace por sí solo:
+
+- Copia tu `.env`, que está en `.gitignore` (Art. X.2) y por eso no viaja al worktree nuevo.
+- **Desplaza los puertos por número de spec**, para que dos worktrees corriendo a la vez no
+  compitan. El checkout principal se queda con los de siempre:
+
+  | | PostgreSQL | Backend | Front |
+  |---|---|---|---|
+  | Checkout principal | 55432 | 8000 | 3000 |
+  | Worktree `NNN` | 55000 + NNN | 8000 + NNN | 3000 + NNN |
+  | Ejemplo: `002` | 55002 | 8002 | 3002 |
+
+- Crea el `.venv` del backend y los `node_modules` del front. Tampoco se comparten entre
+  worktrees, así que cada uno necesita los suyos.
+
+Los worktrees viven en `../vida-worktrees/NNN-nombre`, **fuera** del repositorio, para que no
+aparezcan como archivos sin seguimiento.
+
+Tres cosas que conviene saber:
+
+- **Cada worktree tiene su propia base de datos, y nace vacía.** Compose nombra el proyecto y el
+  volumen por carpeta, así que los usuarios que creaste en el checkout principal no están ahí:
+  hay que correr `alembic upgrade head` y `scripts.crear_admin` en cada worktree.
+- **`.specify/feature.json` es local a cada worktree** y no se versiona. Es el puntero a la spec
+  en la que Spec Kit está trabajando, y por eso cada worktree lleva el suyo.
+- **Cuando la rama se integre a `main`, borra el worktree:** `git worktree remove ../vida-worktrees/NNN-nombre`.
+  Si no, `git worktree list` se llena de carpetas de ramas que ya no existen.
 
 **Cuidado 1 — La numeración de las specs**
 
-Crea la rama **solo** con `bash scripts/nueva-spec.sh <nombre>` o con `/sdd-especificar`. El script consulta el remoto antes de calcular el número y se detiene si no puede, justamente para que dos personas no creen la misma `002`. No crees ramas `feature/NNN-...` a mano.
+Crea la rama **solo** con `/speckit-specify`. No crees ramas `feature/NNN-...` a mano.
 
-**Cuando el mapa ya reserva el número, pásalo explícitamente:**
+Spec Kit numera mirando únicamente las carpetas de `specs/` del checkout donde se ejecuta, y eso
+no alcanza aquí: el mapa reserva del 001 al 007, las tomamos salteadas, y un worktree no ve las
+carpetas de spec que viven en la rama de otro. Por eso el número lo calcula un script del
+proyecto, que **consulta el remoto** antes de responder:
 
 ```bash
-SDD_NUMERO=007 bash scripts/nueva-spec.sh parametros-editables
+bash scripts/numero-de-spec.sh                 # el siguiente libre
+SDD_NUMERO=007 bash scripts/numero-de-spec.sh  # valida un número que el mapa reserva
 ```
 
-Sin `SDD_NUMERO`, el script toma el número más alto que exista y le suma uno. Eso sirve mientras se construya en orden, pero no es nuestro caso: el mapa reserva del 001 al 007 y las estamos tomando salteadas. Dos consecuencias concretas:
+Ese valor se le pasa a Spec Kit como `--number`. Sin él, Spec Kit toma el número más alto que
+exista en el disco y le suma uno. Dos consecuencias concretas:
 
 - Pedir la 007 cuando la más alta es la 004 daría una `005`, que en el mapa es otra funcionalidad.
 - Una vez que existe la `007`, el modo automático pasa a dar `008` y se salta la 003, la 004, la 005 y la 006.
 
-Así que **mientras queden números del mapa sin usar, pasa `SDD_NUMERO`**. El modo automático queda para las specs que vengan después del mapa, de la 008 en adelante. El script rechaza un número ya tomado y uno que no sean tres dígitos.
+Así que **mientras queden números del mapa sin usar, pasa `SDD_NUMERO`**. El modo automático queda
+para las specs que vengan después del mapa, de la 008 en adelante. El script rechaza un número ya
+tomado y uno que no sean tres dígitos.
+
+Si Spec Kit avisa `--number NNN conflicts with an existing spec directory; using MMM instead`,
+**detente**: no es un aviso menor, significa que el número del mapa ya estaba tomado.
 
 **Cuidado 2 — Las migraciones de la base de datos**
 
@@ -69,7 +119,7 @@ Estos van a dar conflicto, y son conflictos pequeños y previsibles. Al resolver
 | `backend/app/modelos/__init__.py` | La importación de sus modelos |
 | `frontend/app/componentes/menu-por-rol.tsx` | Su opción en el menú |
 | `.env.ejemplo` | Sus variables de configuración |
-| `README.md` y `sdd/mapa-funcionalidades.md` | Su estado |
+| `README.md` y `.specify/memory/mapa-funcionalidades.md` | Su estado |
 
 ## Commits
 
@@ -93,7 +143,8 @@ Checklist obligatoria en la descripción del PR:
 ```markdown
 - [ ] La spec no tiene marcas [NECESITA ACLARACIÓN] abiertas que afecten el alcance
 - [ ] plan.md incluye la verificación contra la constitución
-- [ ] Todas las tareas de tareas.md están en [x]
+- [ ] Todas las tareas de tasks.md están en [x]
+- [ ] `/speckit-analyze` no reporta inconsistencias entre spec, plan y tareas
 - [ ] Se validó con el caso de referencia y con al menos un caso distinto
 - [ ] Sin secretos, keys ni datos reales de clientes en el diff
 - [ ] Documentación actualizada
