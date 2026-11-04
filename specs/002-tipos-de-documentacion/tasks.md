@@ -93,14 +93,14 @@ antes de cerrar esta fase.
 **Propósito:** fijar el resultado esperado antes de construir, para que el Art. II sea
 verificable y no una opinión.
 
-- [ ] **T009** [P] Crear `backend/scripts/generar_formatos_de_prueba.py`
+- [x] **T009** [P] Crear `backend/scripts/generar_formatos_de_prueba.py`
   - Terminado cuando: genera los tres archivos de [`quickstart.md`](./quickstart.md) con `python-docx` y `openpyxl`, **con datos ficticios** (Art. X.3): el Word de referencia con la estructura del Adapter Reverso, un Word de generalización con otra jerarquía, dos títulos de nombre repetido y uno sin texto, y un Excel con tres hojas, encabezados en la fila 3 en una de ellas y dos columnas de nombre repetido
   - Terminado cuando: genera además un **cuarto** archivo: un Word que marca sus secciones **solo con negrita**, sin ningún estilo de título. Es el caso que ejercita el respaldo con IA (RF-05c), y sin él no hay forma de probarlo
   - Terminado cuando: el script **exporta también la estructura esperada** de cada archivo, como dato, al lado del código que lo genera
   - Terminado cuando: ningún archivo binario queda versionado en el repositorio
   - Cubre: Art. VIII, Art. X.3
 
-- [ ] **T010** [P] Agregar a `backend/tests/conftest.py` los apoyos de las pruebas de esta funcionalidad
+- [x] **T010** [P] Agregar a `backend/tests/conftest.py` los apoyos de las pruebas de esta funcionalidad
   - Terminado cuando: hay un apoyo que entrega los cuatro formatos generados en una carpeta temporal, y otro que apunta el almacén a una carpeta temporal para que las pruebas no escriban en `uploads/`
   - Terminado cuando: hay un apoyo que **sustituye el cliente de LiteLLM** por uno que devuelve una respuesta fija, para que ninguna prueba del repositorio salga a la red
   - Terminado cuando: las pruebas de la 001 siguen pasando sin cambios
@@ -111,25 +111,25 @@ verificable y no una opinión.
 **Prueba independiente:** crear un tipo, verlo en el listado como **incompleto**, y comprobar que
 un RO no alcanza ninguna de esas rutas.
 
-- [ ] **T011** [P] [HU-1] Crear `backend/app/esquemas/tipos_de_documentacion.py` con los esquemas de creación, modificación y listado
+- [x] **T011** [P] [HU-1] Crear `backend/app/esquemas/tipos_de_documentacion.py` con los esquemas de creación, modificación y listado
   - Terminado cuando: el nombre se valida según lo que T002 haya fijado, y la respuesta del listado incluye el estado derivado y un resumen de la versión vigente, como dice el contrato
   - Cubre: RF-02, RF-02a, RF-03
 
-- [ ] **T012** [HU-1] Crear `backend/app/rutas/tipos_de_documentacion.py` con `GET` y `POST` del listado
+- [x] **T012** [HU-1] Crear `backend/app/rutas/tipos_de_documentacion.py` con `GET` y `POST` del listado
   - Terminado cuando: el enrutador declara `dependencies=[Depends(exigir_administrador)]` **una sola vez** para todo el archivo, como en `rutas/usuarios.py`: ninguna ruta se protege por su cuenta
   - Terminado cuando: `POST` devuelve `409` con el mensaje del contrato si el nombre ya existe, comparado sin mayúsculas ni espacios de sobra
   - Terminado cuando: `GET` devuelve la lista ordenada por nombre, con el estado de cada tipo
   - Cubre: RF-01, RF-02, RF-02a, RF-03
 
-- [ ] **T013** [HU-1] Registrar el enrutador en `backend/app/main.py`
+- [x] **T013** [HU-1] Registrar el enrutador en `backend/app/main.py`
   - Terminado cuando: `GET /tipos-de-documentacion` responde `401` sin sesión y `403` con sesión de RO
   - Ojo: otro de los archivos que todas las ramas tocan
 
-- [ ] **T014** [P] [HU-1] Crear `backend/tests/test_tipos_de_documentacion.py` con las pruebas de creación y listado
+- [x] **T014** [P] [HU-1] Crear `backend/tests/test_tipos_de_documentacion.py` con las pruebas de creación y listado
   - Terminado cuando: cubre crear, nombre repetido en otras mayúsculas, nombre vacío, listado ordenado, y que un RO reciba `403` en **todas** las rutas del enrutador
   - Cubre: RF-01, RF-02, RF-02a, CE-05
 
-- [ ] **T015** [HU-1] Crear la pantalla de listado en `frontend/app/(privado)/administracion/tipos-de-documentacion/page.tsx` y la opción en `frontend/app/componentes/menu-por-rol.tsx`
+- [x] **T015** [HU-1] Crear la pantalla de listado en `frontend/app/(privado)/administracion/tipos-de-documentacion/page.tsx` y la opción en `frontend/app/componentes/menu-por-rol.tsx`
   - Terminado cuando: el Administrador ve los tipos con su estado, puede crear uno, y un tipo incompleto se muestra como tal con el aviso de que todavía no puede usarse
   - Terminado cuando: hay un estado vacío explícito cuando no existe ningún tipo (CHK024)
   - Terminado cuando: la opción no aparece en el menú de un RO
