@@ -81,17 +81,18 @@ lo que no dice.
 - [ ] CHK037 **Art. IX** — ¿Alcanza lo que guarda el RF-20 para rastrear un campo de un documento generado hasta su origen, o falta algo que las funcionalidades 005 y 006 vayan a necesitar? [Completitud constitucional, Spec §4 RF-20]
 - [ ] CHK038 **Art. X.3** — ¿Está dicho en la spec que los casos de prueba usan solo datos ficticios, y que el formato real del cliente no entra al repositorio? Hoy esa decisión vive en `research.md`, que es plan [Completitud constitucional, Spec §9]
 
-## El respaldo con IA (RF-05c, RF-05d, RF-08a)
+## El respaldo con IA (RF-05c, RF-05d)
 
 > Agregados el 2026-11-04, cuando la aclaración sobre los estilos de título trajo el respaldo con
 > IA al alcance. Son los ítems que menos ojos han visto.
 
 - [ ] CHK039 ¿Está definido **qué se le manda** a la IA, con precisión suficiente para afirmar que el Art. VI se cumple? El RF-05c dice que la IA «proponga la estructura», pero qué recibe para hacerlo vive en el plan, no en la spec [Vacío, Spec §4 RF-05c]
 - [ ] CHK040 El RF-05d exige que cada nombre propuesto «aparezca **literalmente** en el documento». ¿Está definido qué cuenta como literal: distingue mayúsculas, acentos, espacios de sobra, un nombre partido en dos párrafos? Dos implementaciones razonables descartarían cosas distintas [Ambigüedad, Spec §4 RF-05d]
-- [ ] CHK041 ¿Está definido qué pasa si la IA propone una estructura **plausible pero equivocada** —todos los nombres están en el documento, pero no eran secciones— y el Administrador la confirma sin comparar? El descarte de RF-05d no atrapa ese caso, y es el único camino que queda para que el Art. II se rompa [Vacío, Spec §4 RF-05d, RF-08a]
-- [ ] CHK042 El RF-08a dice que una propuesta sin confirmar deja el tipo incompleto. ¿Está dicho en la spec que el Administrador puede **distinguir** un tipo con una propuesta pendiente de uno que nunca tuvo formato? Los dos están incompletos y lo que tiene que hacer es distinto [Vacío, Spec §4 RF-03, RF-08a]
+- [ ] CHK041 ¿Está definido qué pasa si la IA propone una estructura **plausible pero equivocada** —todos los nombres están en el documento, pero no eran secciones—? El descarte de RF-05d no atrapa ese caso. La spec supone que el síntoma se ve en el detalle del tipo y, más tarde, en las preguntas de la 004: ¿está eso dicho, o solo supuesto? [Vacío, Spec §4 RF-05d]
+- [ ] CHK042 La spec ya no exige que el Administrador confirme una estructura propuesta: el tipo queda activo y él la revisa en el detalle (RF-08). ¿Alcanza esa revisión opcional para lo que el Art. II exige, o debería la spec pedir al menos que se le avise que la estructura la propuso la IA? [Consistencia constitucional, Spec §4 RF-05c, RF-08]
 - [ ] CHK043 ¿Es consistente el RF-10 con el RF-05c? El RF-10 trata «la IA no está disponible» como un rechazo igual a «el archivo no tiene estructura». ¿Es eso lo que el negocio quiere, o un formato válido rechazado por una falla de un servicio interno merece otra respuesta? [Conflicto, Spec §4 RF-10, RF-05c]
 - [ ] CHK044 El criterio CE-09 mete la consulta a la IA dentro del techo de 30 s. ¿Está dicho qué pasa cuando la consulta sola se acerca a ese techo: se rechaza, se espera, o el techo admite excepción en este camino? [Medibilidad, Spec §9 CE-09]
+- [ ] CHK045 ¿Está dicho en la spec que la estructura reconocida sirve para **saber qué preguntarle al RO**, y que el documento final se escribe dentro del archivo original en vez de reconstruirse? Es lo que explica por qué el estilo del formato no corre riesgo, y hoy vive en el RF-05 y en el plan [Claridad, Spec §4 RF-05, RF-09]
 
 ## Notas
 
@@ -102,7 +103,7 @@ lo que no dice.
   `/speckit-specify` y `/speckit-clarify`.
 - Los hallazgos van escritos junto al ítem, no en otro archivo.
 
-**Por dónde empezar:** CHK041 y CHK043. El primero es el único camino que queda para que una
-sección inventada llegue a un documento entregado; el segundo decide si un formato bueno se
-rechaza por una falla que no es suya. CHK030, que era el ítem que podía invalidar la
-funcionalidad, dejó de serlo el 2026-11-04.
+**Por dónde empezar:** CHK042 y CHK043. El primero pregunta si basta con que el Administrador
+revise la estructura en pantalla, ahora que confirmarla dejó de ser obligatorio; el segundo, si
+un formato bueno debería rechazarse por una falla de un servicio interno. CHK030, que era el
+ítem que podía invalidar la funcionalidad, dejó de serlo el 2026-11-04.

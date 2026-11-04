@@ -27,7 +27,6 @@ rol Administrador, por la dependencia del enrutador completo, como en la 001.
 | `PATCH` | `/tipos-de-documentacion/{id}` | Cambia nombre y descripción | RF-12 |
 | `DELETE` | `/tipos-de-documentacion/{id}` | Elimina un tipo incompleto | RF-15 |
 | `POST` | `/tipos-de-documentacion/{id}/formato` | Carga o reemplaza el formato → versión nueva | RF-04 a RF-11, RF-13, RF-19 |
-| `POST` | `/tipos-de-documentacion/{id}/formato/versiones/{numero}/confirmacion` | Confirma una estructura propuesta por la IA | RF-08a |
 | `GET` | `/tipos-de-documentacion/{id}/formato/versiones/{numero}` | Estructura de una versión anterior | RF-21 |
 | `POST` | `/tipos-de-documentacion/{id}/activacion` | Desactiva o reactiva | RF-14 |
 
@@ -94,16 +93,13 @@ archivo (RF-08):
     }
   },
   "historial": [
-    { "numero": 2, "nombre_archivo_original": "formato-adapter-reverso-v2.docx", "creado_en": "2026-11-03T14:20:00Z", "origen": "lectura", "confirmada_en": "2026-11-03T14:20:00Z", "vigente": true },
-    { "numero": 1, "nombre_archivo_original": "formato-adapter-reverso.docx",    "creado_en": "2026-10-28T09:05:00Z", "origen": "propuesta_ia", "confirmada_en": "2026-10-28T09:11:00Z", "vigente": false }
+    { "numero": 2, "nombre_archivo_original": "formato-adapter-reverso-v2.docx", "creado_en": "2026-11-03T14:20:00Z", "vigente": true },
+    { "numero": 1, "nombre_archivo_original": "formato-adapter-reverso.docx",    "creado_en": "2026-10-28T09:05:00Z", "vigente": false }
   ]
 }
 ```
 
-- `historial` va de la versión más nueva a la más vieja, y marca la vigente (RF-21). Cada
-  entrada dice su `origen` y, si fue una propuesta, cuándo se confirmó (RF-20). Una propuesta sin
-  confirmar aparece en el historial con `confirmada_en: null`: es la que el Administrador tiene
-  pendiente.
+- `historial` va de la versión más nueva a la más vieja, y marca la vigente (RF-21).
 - La `estructura` de las versiones anteriores **no** viene aquí: se pide por su ruta, para que el
   detalle de un tipo con muchas versiones no crezca sin límite.
 - `404` si el tipo no existe: `No existe ese tipo de documentación.`
@@ -112,38 +108,13 @@ archivo (RF-08):
 
 `multipart/form-data` con un campo `archivo`. Es la ruta donde vive casi toda la funcionalidad.
 
-`201` con la versión creada: `numero`, metadatos, `estructura` completa, `origen` y `vigente`.
-
-**Hay dos respuestas de éxito distintas**, y el front tiene que distinguirlas porque llevan al
-Administrador a dos lugares diferentes:
-
-```json
-{
-  "numero": 1,
-  "origen": "lectura",
-  "vigente": true,
-  "estructura": { "clase": "word", "secciones": [] }
-}
-```
-
-```json
-{
-  "numero": 1,
-  "origen": "propuesta_ia",
-  "vigente": false,
-  "aviso": "El archivo no marca sus secciones con estilos de título, así que la estructura la propuso la IA. Revísala contra tu archivo y confírmala para que el tipo quede disponible.",
-  "estructura": { "clase": "word", "secciones": [] }
-}
-```
-
-Con `origen: "propuesta_ia"` y `vigente: false` el tipo **sigue incompleto** (RF-08a): la versión
-está guardada, pero ningún RO ve el tipo hasta que se confirme. El `aviso` solo aparece en ese
-caso, y es el único texto de la respuesta pensado para mostrarse tal cual.
+`201` con la versión creada: `numero`, metadatos y `estructura` completa. La respuesta es la
+misma venga la estructura de la lectura del archivo o de la propuesta de la IA, y en los dos
+casos la versión **queda vigente**: el tipo pasa a activo.
 
 | Código | Cuándo | `detalle` | RF |
 |---|---|---|---|
-| `201` | Leída del archivo: pasa a ser la vigente de inmediato | — | RF-19 |
-| `201` | Propuesta por la IA: queda guardada **sin** vigencia, a la espera de confirmación | — | RF-05c, RF-08a |
+| `201` | Aceptado, estructura reconocida, pasa a ser la vigente | — | RF-19 |
 | `404` | El tipo no existe | `No existe ese tipo de documentación.` | — |
 | `413` | Supera el tamaño máximo | `El archivo supera el tamaño máximo permitido (25 MB).` | RF-18 |
 | `415` | Extensión no admitida, o la firma no corresponde a un archivo de Office actual | `Solo se admiten formatos de Word (.docx) y Excel (.xlsx).` | RF-04 |
@@ -163,26 +134,9 @@ Para el Administrador las tres son lo mismo —el formato no se pudo reconocer y
 corregirlo— y nombrarle una falla de un servicio interno no le da nada con lo que actuar. La
 diferencia queda en el registro del servidor, que es donde sirve.
 
-### `POST /tipos-de-documentacion/{id}/formato/versiones/{numero}/confirmacion`
-
-Sin cuerpo. Confirma la estructura que la IA propuso para esa versión, con lo que pasa a ser la
-vigente y el tipo queda **activo** (RF-08a).
-
-| Código | Cuándo | `detalle` |
-|---|---|---|
-| `200` | Confirmada: devuelve el tipo con su estado nuevo y la versión con `confirmada_en` | — |
-| `404` | El tipo o esa versión no existen | `No existe esa versión del formato.` |
-| `409` | La versión salió de la lectura del archivo: no hay nada que confirmar | `Esa estructura se leyó del archivo y ya está vigente.` |
-| `409` | Ya estaba confirmada | `Esa estructura ya fue confirmada.` |
-
-**No existe la operación inversa.** No se «desconfirma» ni se rechaza una propuesta: la versión
-es inmutable, y lo que corresponde si la estructura no sirve es corregir el archivo y cargarlo
-otra vez. Una propuesta que nadie confirma se queda ahí sin vencimiento, y el tipo sigue
-incompleto.
-
-**Es una ruta propia y no un `PATCH` de la versión** porque no edita la estructura: la acepta tal
-como está. Dejar entrar un cuerpo abriría la puerta a corregirla de paso, que es justo lo que la
-spec deja fuera de alcance.
+**No hay ruta para corregir una estructura reconocida.** Si no corresponde al archivo, el
+Administrador corrige el archivo y lo vuelve a cargar, que produce una versión nueva. Editarla
+aquí dejaría que la estructura guardada divergiera del archivo (sección 8 de la spec).
 
 ### `GET /tipos-de-documentacion/{id}/formato/versiones/{numero}`
 
@@ -212,7 +166,6 @@ mismo gesto, y separarlas evita desactivar un tipo por accidente al renombrarlo.
 |---|---|---|
 | `200` | Cambiado | — |
 | `409` | Se intenta activar un tipo incompleto | `Este tipo no tiene un formato cargado, así que no puede activarse.` |
-| `409` | Se intenta activar un tipo cuya única versión es una propuesta sin confirmar | `La estructura de este tipo todavía no ha sido confirmada. Revísala y confírmala para poder activarlo.` |
 
 ### `DELETE /tipos-de-documentacion/{id}`
 
@@ -260,7 +213,7 @@ comodidad, y la barrera está en el backend.
 | Pantalla | Ruta del front | Endpoints |
 |---|---|---|
 | Listado de tipos | `/administracion/tipos-de-documentacion` | `GET`, `POST`, `DELETE`, `POST /activacion` |
-| Detalle y estructura | `/administracion/tipos-de-documentacion/[id]` | `GET /{id}`, `PATCH`, `POST /{id}/formato`, `GET …/versiones/{numero}`, `POST …/versiones/{numero}/confirmacion` |
+| Detalle y estructura | `/administracion/tipos-de-documentacion/[id]` | `GET /{id}`, `PATCH`, `POST /{id}/formato`, `GET …/versiones/{numero}` |
 | Tipos disponibles (RO) | `/inicio` o la pantalla que la 003 defina | `GET /tipos-de-documentacion-disponibles` |
 
 La opción del menú se agrega en `frontend/app/componentes/menu-por-rol.tsx`, que es uno de los
@@ -272,8 +225,6 @@ archivos que todas las ramas tocan: al resolver el conflicto se conservan las do
 > y, en ese caso, **no** fijar `Content-Type`: el navegador tiene que poner el suyo con el
 > delimitador. Es un cambio aditivo y no altera las llamadas que ya existen.
 
-> **La pantalla de confirmación no puede parecerse a la del detalle normal.** Una estructura con
-> `origen: "propuesta_ia"` se muestra marcada como propuesta, con el aviso del servidor y la
-> acción de confirmar al lado; una leída del archivo se muestra como hoy. Presentar las dos igual
-> dejaría que el Administrador confirmara sin comparar, que es el único riesgo del Art. II que
-> queda después del descarte de RF-05d (riesgo 2 de `plan.md`).
+> **La pantalla de detalle es donde el Administrador revisa la estructura** (RF-08), y es la única
+> revisión que existe: ninguna ruta le exige confirmar nada antes de que el tipo quede activo. Si
+> la estructura no corresponde, corrige el archivo y lo recarga.

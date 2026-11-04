@@ -14,9 +14,15 @@ tomó y qué se descartó. Lo que aquí se decide es el *cómo*; el *qué* está
 **Decisión: la lectura determinista es el camino principal; la IA solo entra como respaldo.**
 
 > **Revisada el 2026-11-04.** La decisión original era que no interviniera ningún modelo. La
-> aclaración de ese día la cambió: si la lectura determinista no reconoce nada, la IA propone
-> la estructura y el Administrador la confirma (RF-05c, RF-08a). Lo que sigue explica por qué
-> la lectura determinista conserva la prioridad; el respaldo está en la **decisión 11**.
+> aclaración de ese día la cambió: si la lectura determinista no reconoce nada, la IA propone la
+> estructura (RF-05c). Lo que sigue explica por qué la lectura determinista conserva la
+> prioridad; el respaldo está en la **decisión 11**.
+>
+> Lo que acotó el alcance de esa revisión fue entender **para qué** sirve la estructura: es la
+> lista de qué preguntarle al RO (funcionalidad 004), no el documento que se entrega. El
+> documento se escribe dentro del archivo original (RF-09), así que el estilo del formato se
+> conserva por construcción y la estructura no tiene que ser una copia fiel del archivo: tiene
+> que nombrar lo que hay que llenar.
 
 **Por qué.** El Art. I dice que el sistema no agrega, quita, renombra ni reordena nada de la
 estructura, y el Art. II que no completa ningún dato por su cuenta. Un modelo, por bueno que
@@ -243,7 +249,7 @@ documento con secciones; para la librería, un archivo sin estructura. Rechazarl
 comportamiento correcto mientras no hubiera alternativa, pero si esa es la convención del área,
 la plataforma no serviría para los formatos que existen (era el riesgo CHK030 de la checklist).
 
-**Los tres cercos**, que son lo que hace que esto no contradiga los artículos I y II:
+**Los dos cercos**, que son lo que hace que esto no contradiga los artículos I y II:
 
 1. **No se le manda el archivo, se le manda texto.** Del `.docx` se extraen los párrafos con sus
    señales de forma —negrita, tamaño, si está solo en su línea— y del `.xlsx` los nombres de las
@@ -252,8 +258,6 @@ la plataforma no serviría para los formatos que existen (era el riesgo CHK030 d
 2. **Se descarta lo que no esté en el documento.** Cada nombre que la IA proponga se busca
    literalmente en el texto extraído; el que no aparezca no entra (RF-05d). Es una verificación
    mecánica, no una confianza: convierte el criterio CE-04 en algo que una prueba puede afirmar.
-3. **El Administrador confirma.** La versión se guarda, pero no queda vigente y el tipo sigue
-   incompleto hasta que él la revise contra su archivo (RF-08a). La IA propone, no decide.
 
 **El modelo no queda en el código** (Art. V): se configura por variable de entorno, con la
 dirección de LiteLLM y el nombre de la tarea. El respaldo además **se puede apagar**: con
@@ -265,8 +269,13 @@ lo que sirve para las pruebas y para un despliegue sin acceso a VORKAN.
 - **Una heurística propia sobre negritas y tamaños de letra**, sin IA. Es determinista, pero
   decide por su cuenta qué párrafo era un título, con reglas que nadie escribió en ninguna spec:
   inventa igual, solo que sin decirlo.
-- **Confiar en una señal de confianza del propio modelo** para decidir cuándo pedir
-  confirmación. Apoya el único control que existe en algo que produce la parte vigilada.
+- **Una compuerta de confirmación**: que la versión propuesta no quedara vigente hasta que el
+  Administrador la aprobara. Se diseñó así y se quitó el mismo día. El argumento para quitarla:
+  lo que la estructura decide es qué se le pregunta al RO, y una lista mal reconocida se nota al
+  abrir una actividad y se corrige recargando el archivo, sin que ningún documento entregado
+  quede mal. Una compuerta con su estado en la base, su ruta y su pantalla era mucho aparato para
+  proteger algo que no estaba en riesgo. El Administrador revisa la estructura en el detalle del
+  tipo (RF-08), que ya existía.
 - **Resolver el respaldo en segundo plano.** Separaría esta carga del techo de 30 s, pero la
   aclaración del 2026-11-04 fijó que todo se resuelve en la misma petición; el respaldo trabaja
   sobre texto, así que cabe.

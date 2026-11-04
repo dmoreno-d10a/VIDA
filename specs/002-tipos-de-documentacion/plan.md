@@ -28,12 +28,17 @@ ahí está en el archivo o no sale, y por eso manda.
 
 El segundo es el **respaldo con IA** (RF-05c), para el formato que un lector no puede reconocer
 porque marca sus secciones con negrita o con tamaño de letra en vez de estilos de título. Solo
-corre cuando la lectura directa no reconoció **nada**, y lleva tres cercos que son lo que lo hace
-compatible con los artículos I y II: se le manda el texto extraído y nunca el archivo (Art. VI),
-se descarta todo nombre que no aparezca literalmente en el documento (RF-05d), y la versión no
-queda vigente hasta que el Administrador la confirme (RF-08a). Esto hace que la 002 **sí llegue a
-LiteLLM y VORKAN**, por una sola puerta y apagable por configuración (decisiones 1 y 11 de
-`research.md`).
+corre cuando la lectura directa no reconoció **nada**, y lleva dos cercos: se le manda el texto
+extraído y nunca el archivo (Art. VI), y se descarta todo nombre que no aparezca literalmente en
+el documento (RF-05d). Esto hace que la 002 **sí llegue a LiteLLM y VORKAN**, por una sola puerta
+y apagable por configuración (decisiones 1 y 11 de `research.md`).
+
+**Para qué sirve la estructura reconocida, dicho sin rodeos:** es la lista de **qué hay que
+llenar**, que es lo que la 004 necesita para saber qué preguntarle al RO. El documento final no
+se reconstruye a partir de ella: se escribe **dentro del archivo original** (RF-09), y por eso el
+estilo del formato se conserva sin que haga falta nada para protegerlo. Eso es lo que justifica
+que el reconocimiento sea tan liviano como sea posible: una lista incompleta se nota en la 004 y
+se arregla recargando el archivo, no corrompe un documento entregado.
 
 La segunda decisión que organiza el diseño es el **versionado del formato** (RF-19 a RF-21),
 resuelto como aclaración el 2026-11-03. Cada carga produce una versión inmutable con su archivo
@@ -60,7 +65,7 @@ No quedan incógnitas abiertas: las diez que había se resolvieron en la Fase 0,
 | Artículo | ¿Cumple? | Cómo |
 |---|---|---|
 | I — El formato definido manda | Sí | Una sección es un párrafo con estilo de título y nada más; los encabezados de una hoja salen de su primera fila con contenido (RF-05a, RF-05b). La estructura se lee de forma determinista y se guarda como listas ordenadas en `JSONB`, sin normalizar nada. Las secciones y columnas de nombre repetido se conservan todas; las sin nombre se guardan como `null` sin inventarles uno. La prueba de reconocimiento compara contra la estructura exacta del archivo generado, así que el cumplimiento es verificable y no una opinión |
-| II — Cero información inventada | Sí | La lectura principal no puede inventar: recorre el archivo. El respaldo con IA sí podría, y por eso lleva dos controles mecánicos y uno humano: cada nombre propuesto se busca literalmente en el texto del documento y se descarta si no está (RF-05d), y la versión no queda vigente sin que el Administrador la confirme (RF-08a). Un formato del que ni la lectura ni la IA reconocen nada se rechaza (RF-10) en vez de completarse |
+| II — Cero información inventada | Sí | La lectura principal no puede inventar: recorre el archivo. El respaldo con IA sí podría, y por eso cada nombre propuesto se busca literalmente en el texto del documento y se descarta si no está (RF-05d). Lo que la estructura decide es qué se le pregunta al RO, no qué dice el documento: el contenido lo pone el RO y el estilo lo pone el archivo original, que se llena en sitio. Un formato del que ni la lectura ni la IA reconocen nada se rechaza (RF-10) |
 | III — El RO decide | N.A. | Esta funcionalidad no le pide información al RO: solo le ofrece la lista de tipos activos |
 | IV — Separación de capas | Sí | Toda la lectura de archivos, la validación y la autorización están en el backend. El front no tiene credenciales ni decide permisos: oculta opciones por comodidad, y la barrera es la dependencia del enrutador |
 | V — Independencia del modelo | Sí | El respaldo habla con LiteLLM por HTTP, no con un SDK de proveedor. Dirección, credencial y nombre de la tarea son variables de entorno; cambiar de modelo no toca código. El cliente está en un solo archivo, `propuesta_ia.py`, que es el único punto de la 002 que sale a la red |
@@ -94,7 +99,7 @@ en que no haya modelo sino en los tres cercos de la decisión 11. Ninguna otra f
 | `backend/app/formatos/texto_para_ia.py` | Lógica | Extrae el esqueleto que se le manda a la IA: párrafos con sus señales de forma, u hojas con sus primeras filas. Nunca el archivo | Art. VI |
 | `backend/app/formatos/propuesta_ia.py` | Lógica | Único punto que sale a la red: pide la propuesta a LiteLLM y **descarta** todo nombre que no aparezca literalmente en el texto | RF-05c, RF-05d, Art. V |
 | `backend/app/formatos/almacen.py` | Lógica | Escribe y lee el archivo en la carpeta configurada, calcula el hash y encapsula la ruta | RF-09, RF-20 |
-| `backend/app/rutas/tipos_de_documentacion.py` | Rutas | Administración de tipos, carga de formatos y confirmación de una estructura propuesta. Exige Administrador en el enrutador | RF-01, RF-08a, RF-12 a RF-15, RF-21 |
+| `backend/app/rutas/tipos_de_documentacion.py` | Rutas | Administración de tipos y carga de formatos. Exige Administrador en el enrutador | RF-01, RF-12 a RF-15, RF-21 |
 | `backend/app/rutas/tipos_disponibles.py` | Rutas | Lista de tipos activos para los RO. Solo exige sesión | RF-16 |
 | `backend/app/configuracion.py` | Config | Tres parámetros del almacén y la carga, más cuatro del respaldo: interruptor, dirección de LiteLLM, credencial y nombre de la tarea | RF-18, Art. V |
 | `backend/alembic/versions/*_tipos_de_documentacion.py` | Migración | Las dos tablas y la clave foránea cruzada | RF-02, RF-19 |
@@ -137,12 +142,8 @@ flowchart TD
   Q --> S{¿Quedó algo?}
   S -- No --> R3
   S -- Sí --> J
-  J --> K[Inserta la versión]
-  K --> T{¿De dónde salió la estructura?}
-  T -- Lectura directa --> L[201: queda vigente, el tipo pasa a activo]
-  T -- Propuesta de la IA --> U[201: guardada sin vigencia, el tipo sigue incompleto]
-  U --> V[El Administrador la compara con su archivo y confirma]
-  V --> L
+  J --> K[Inserta la versión y apunta el tipo a ella]
+  K --> L[201: queda vigente, el tipo pasa a activo]
 
   R1 --> M[El tipo queda como estaba]
   R2 --> M
@@ -159,9 +160,9 @@ La llamada a la IA queda **fuera de la transacción** por la misma razón, y con
 transacción abierta mientras se espera una respuesta de la red sostiene el candado del tipo
 durante segundos. Primero se resuelve la propuesta, después se abre la transacción.
 
-**La bifurcación del final es lo que implementa RF-08a:** la versión se inserta en los dos
-casos, pero solo la de lectura directa queda vigente de inmediato. La propuesta espera la
-confirmación, y hasta entonces el tipo es indistinguible de uno sin formato para los RO.
+**El final no se bifurca:** la versión queda vigente venga su estructura de la lectura o de la
+propuesta. La revisión del Administrador ocurre después, en la pantalla de detalle (RF-08), y lo
+que hace si la estructura no corresponde es corregir el archivo y recargarlo.
 
 ## 6. Configuración
 
@@ -241,9 +242,9 @@ frontend/
   escribió —nombres, cantidad, orden y nivel—; los cuatro rechazos con su código y su mensaje; y
   que el tipo quede intacto tras cada rechazo.
 - **Cómo se prueba el respaldo sin llamar a VORKAN:** las pruebas sustituyen el cliente de
-  LiteLLM por uno que devuelve una respuesta fija, y verifican las dos cosas que importan: que
-  un nombre que **no** está en el documento se descarte (RF-05d), y que el tipo siga incompleto
-  mientras no se confirme (RF-08a, CE-11). Ninguna prueba del repositorio sale a la red.
+  LiteLLM por uno que devuelve una respuesta fija, y verifican las dos cosas que importan: que un
+  nombre que **no** está en el documento se descarte (RF-05d), y que la lectura directa tenga
+  prioridad cuando el archivo sí trae estilos. Ninguna prueba del repositorio sale a la red.
 
 Los tres archivos se **generan**, no se cometen: el formato real de un cliente no puede entrar al
 repositorio (Art. X.3), y generar deja la estructura esperada escrita al lado del código que
@@ -267,7 +268,7 @@ hacia `formato_version` es cruzada —cada tabla referencia a la otra— así qu
 | Riesgo / decisión | Impacto | Mitigación |
 |---|---|---|
 | Un Word del área marca sus secciones con negrita o tamaño de letra, no con estilos de título | Era el riesgo que podía invalidar la funcionalidad | **Resuelto por la aclaración del 2026-11-04:** ese es ahora el caso del respaldo con IA (RF-05c), no un rechazo. Sigue valiendo la pena saber qué usa el área (T001), pero ya no para decidir si la funcionalidad sirve, sino para saber **cuál de los dos caminos** va a ser el habitual y cuánto va a costar |
-| La IA propone una estructura plausible que el documento no tiene, y el Administrador la confirma sin comparar | Una sección inventada entra a la plataforma y llega a un documento entregado. Es la forma en que el Art. II se rompe de verdad | El descarte de RF-05d quita los nombres que no están en el texto, que es lo que se puede verificar mecánicamente. Lo que queda es un riesgo humano: la pantalla de confirmación tiene que mostrar la estructura propuesta **marcada como propuesta**, no presentarla igual que una leída del archivo |
+| La IA propone una estructura plausible que el documento no tiene —los nombres están, pero no eran secciones— | La 004 le preguntaría al RO por una sección que su formato no tiene, o dejaría de preguntarle por una que sí | El descarte de RF-05d quita los nombres que no están en el texto, que es lo verificable mecánicamente. El resto se ve en la pantalla de detalle (RF-08) y, cuando la 004 exista, al abrir una actividad: el síntoma es visible y la corrección es recargar el archivo. Lo que **no** está en riesgo es el documento entregado, porque se escribe dentro del archivo original |
 | El respaldo con IA no responde, responde tarde o VORKAN no está disponible | La carga de un formato sin estilos de título fallaría, y con el techo de 30 s de por medio | El respaldo tiene un tiempo límite propio, menor que el techo de la carga, y al agotarse la carga se rechaza con el mensaje de RF-10: nunca queda a medias. `VIDA_IA_RESPALDO=0` permite operar sin VORKAN, con el comportamiento del diseño original |
 | La base y el disco se desincronizan: la versión existe y el archivo no | La 006 no podría generar el documento de ese tipo | El hash permite detectarlo. La ruta está encapsulada en `almacen.py`, así que pasar a `BYTEA` más adelante es un cambio local (decisión 6 de `research.md`) |
 | Versiones que se acumulan sin límite | Crecimiento del disco con archivos que nadie consulta | Es deliberado: el Art. IX lo exige. La limpieza depende del pendiente X.4 de la constitución |

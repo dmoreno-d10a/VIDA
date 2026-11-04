@@ -123,14 +123,13 @@ Después prueba los rechazos, y comprueba que en los cuatro el tipo **queda como
 `solo-negritas.docx` en un tipo nuevo. Debe pasar lo siguiente, y conviene verificarlo entero
 porque es el camino más nuevo de la funcionalidad:
 
-- La carga se acepta, pero el tipo **sigue incompleto** y ningún RO lo ve (RF-08a).
-- La pantalla muestra la estructura **marcada como propuesta**, con el aviso del servidor, no
-  igual que una leída del archivo.
-- Cada nombre de la propuesta está en el documento. Si ves uno que no está, el descarte de
+- La carga se acepta y el tipo queda **activo**, igual que con un formato bien marcado.
+- Cada nombre de la estructura está en el documento. Si ves uno que no está, el descarte de
   RF-05d no está funcionando, y eso es una falla del Art. II, no un detalle.
-- Al confirmar, el tipo pasa a **activo** y el RO ya lo ve.
-- Intentar activar el tipo **antes** de confirmar se rechaza con su mensaje propio.
-- Con un Word que **sí** trae estilos de título, la IA no interviene: la lectura directa manda.
+- La lista de secciones corresponde a lo que una persona llamaría secciones del documento. Si
+  sobra o falta alguna, corriges el archivo y lo recargas: no hay forma de editarla aquí.
+- Con un Word que **sí** trae estilos de título, la IA no interviene: la lectura directa manda, y
+  eso se comprueba en que la carga no tarda lo que tarda una consulta al modelo.
 
 **HU-3 — Confirmar la estructura.** Abre el detalle del tipo y compara con el archivo abierto al
 lado. Lo que hay que verificar es que **no sobre, no falte y no esté reordenado nada**. Con
@@ -177,7 +176,7 @@ Lo que se agrega:
 |---|---|
 | `backend/tests/test_tipos_de_documentacion.py` | Crear, listar, modificar, desactivar, eliminar, y que un RO no alcance ninguna de esas rutas |
 | `backend/tests/test_reconocimiento_de_formato.py` | La estructura reconocida de los tres casos, comparada contra la esperada; y los cuatro rechazos |
-| `backend/tests/test_respaldo_con_ia.py` | El camino del respaldo con el cliente sustituido: el descarte de lo que no está en el documento, que el tipo siga incompleto sin confirmar, y que la lectura directa tenga prioridad |
+| `backend/tests/test_respaldo_con_ia.py` | El camino del respaldo con el cliente sustituido: el descarte de lo que no está en el documento, y que la lectura directa tenga prioridad |
 | `backend/tests/test_versiones_de_formato.py` | Tres reemplazos seguidos conservan las tres versiones anteriores con su archivo y su estructura |
 | `frontend/e2e/tipos-de-documentacion.spec.ts` | El recorrido del Administrador y que el RO no vea la opción |
 
@@ -204,6 +203,6 @@ Son los criterios medibles de la sección 9 de la spec, en orden de verificació
 - [ ] 100 % de las cargas inválidas rechazadas con motivo, dejando el tipo como estaba
 - [ ] 0 tipos incompletos o desactivados visibles para un RO
 - [ ] 0 pérdidas al reemplazar: tras tres reemplazos, las tres versiones anteriores siguen enteras
-- [ ] 0 tipos activos con estructura propuesta sin confirmar
 - [ ] 0 nombres propuestos por la IA que no estén literalmente en el documento
+- [ ] 0 llamadas al modelo en los formatos que sí traen estilos de título o encabezados
 - [ ] Cambiar extensiones, tamaño máximo y tarea del modelo sin tocar código

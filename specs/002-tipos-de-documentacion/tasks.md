@@ -160,7 +160,6 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 - [ ] **T018** [HU-2] Crear `backend/app/formatos/reconocimiento.py` como puerta única
   - Terminado cuando: aplica las tres barreras **en orden** —tamaño, extensión y firma ZIP (`PK\x03\x04`)— antes de intentar leer nada, como dice la decisión 4 de `research.md`
   - Terminado cuando: elige el lector por la extensión, y si la lectura no reconoce nada —Word con `secciones` vacía, o Excel sin ninguna hoja con al menos una columna— **llama al respaldo** de T018b en vez de rechazar (RF-05c)
-  - Terminado cuando: devuelve, junto con la estructura, de dónde salió: `lectura` o `propuesta_ia`. Quien lo llame no tiene que adivinarlo
   - Terminado cuando: rechaza (RF-10) solo cuando la propuesta también queda vacía, el respaldo está apagado o no respondió
   - Terminado cuando: un archivo dañado o protegido produce un error propio y distinguible del de «sin estructura», porque el contrato les da mensajes distintos, y **no** llama al respaldo: un archivo que no se pudo abrir no tiene texto que mandar
   - Cubre: RF-04, RF-05c, RF-10, RF-18
@@ -181,8 +180,8 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 
 - [ ] **T019** [HU-2] Agregar `POST /tipos-de-documentacion/{id}/formato` a `backend/app/rutas/tipos_de_documentacion.py`
   - Terminado cuando: escribe el archivo en el almacén y resuelve el reconocimiento —respaldo con IA incluido— **antes** de abrir la transacción: dentro de ella no puede haber entrada ni salida de disco ni una espera de red, porque sostendría el candado del tipo durante segundos
-  - Terminado cuando: dentro de la transacción toma el candado de la fila del tipo con `SELECT … FOR UPDATE`, inserta la versión con el número siguiente y su `origen`, y apunta `version_vigente_id` a ella **solo si** la estructura salió de la lectura directa (RF-08a)
-  - Terminado cuando: con `origen: "propuesta_ia"` la respuesta lleva `vigente: false` y el `aviso` del contrato, y el tipo **sigue incompleto**
+  - Terminado cuando: dentro de la transacción toma el candado de la fila del tipo con `SELECT … FOR UPDATE`, inserta la versión con el número siguiente y apunta `version_vigente_id` a ella
+  - Terminado cuando: la respuesta es la misma venga la estructura de la lectura o de la propuesta de la IA: una sola forma, sin estados intermedios
   - Terminado cuando: devuelve los códigos y los mensajes exactos del contrato: `201`, `404`, `413`, `415`, `422` (dos mensajes distintos) y `409`
   - Terminado cuando: el `413` se responde **mientras** se recibe el archivo, no después de recibirlo completo
   - Terminado cuando: en **los cuatro** casos de rechazo el tipo conserva su versión vigente, o sigue incompleto
@@ -201,13 +200,13 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
   - La carga desde la pantalla es T023a, porque la pantalla de detalle no existe hasta T023
 
 - [ ] **T020a** [P] [HU-2] Crear `backend/tests/test_respaldo_con_ia.py`
-  - Terminado cuando: con el Word de solo negritas y el cliente sustituido, la carga responde `201` con `origen: "propuesta_ia"`, `vigente: false`, y el tipo **sigue incompleto** (RF-08a, CE-11)
+  - Terminado cuando: con el Word de solo negritas y el cliente sustituido, la carga responde `201` y el tipo queda **activo** con la estructura propuesta
   - Terminado cuando: un nombre que la respuesta fija trae y el documento **no** contiene se descarta y no aparece en la estructura guardada (RF-05d, CE-04). Es la prueba que convierte el Art. II en algo verificable para este camino
   - Terminado cuando: si tras el descarte no queda nada, la carga responde `422` con el mensaje del contrato y el tipo queda como estaba
   - Terminado cuando: con el respaldo apagado, y con el respaldo encendido pero el cliente fallando, el resultado es el mismo `422`: para el Administrador las tres fallas son una sola
   - Terminado cuando: la lectura directa **tiene prioridad**: con un Word que sí trae estilos de título, el cliente sustituido no se llama ni una vez
   - Terminado cuando: ninguna prueba sale a la red
-  - Cubre: RF-05c, RF-05d, RF-08a, CE-04, CE-11; Art. II, Art. V
+  - Cubre: RF-05c, RF-05d, CE-04; Art. II, Art. V
 
 ## Fase 6 — HU-3: Confirmar la estructura reconocida (Prioridad: P2)
 
@@ -217,17 +216,9 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
 
 - [ ] **T022** [HU-3] Agregar `GET /tipos-de-documentacion/{id}` con el detalle, la estructura vigente y el historial
   - Terminado cuando: devuelve exactamente la forma del contrato, con el historial de la versión más nueva a la más vieja y la vigente marcada
-  - Terminado cuando: cada entrada del historial trae su `origen` y su `confirmada_en`, y una propuesta sin confirmar aparece con `confirmada_en: null` (RF-20, RF-21)
   - Terminado cuando: la estructura sale de la base de datos, **sin volver a leer el archivo** (RF-07)
   - Terminado cuando: la `estructura` de las versiones anteriores **no** viene en esta respuesta
   - Cubre: RF-07, RF-08, RF-21
-
-- [ ] **T022a** [HU-3] Agregar `POST /tipos-de-documentacion/{id}/formato/versiones/{numero}/confirmacion`
-  - Terminado cuando: sin cuerpo, escribe `confirmada_en` **una sola vez** y apunta `version_vigente_id` a esa versión, con lo que el tipo queda activo (RF-08a)
-  - Terminado cuando: devuelve los códigos y los mensajes exactos del contrato: `200`, `404`, y `409` tanto para una versión leída del archivo como para una ya confirmada
-  - Terminado cuando: no existe la operación inversa: no hay forma de desconfirmar ni de editar la estructura al confirmarla
-  - Terminado cuando: `POST /activacion` sobre un tipo cuya única versión es una propuesta sin confirmar devuelve `409` con su mensaje propio
-  - Cubre: RF-08a, CE-11
 
 - [ ] **T023** [HU-3] Crear la pantalla de detalle en `frontend/app/(privado)/administracion/tipos-de-documentacion/[id]/page.tsx`
   - Terminado cuando: muestra las secciones de un Word con su nivel y su orden, o las hojas de un Excel con sus columnas y la fila de encabezados de cada una, de forma que se pueda comparar con el archivo abierto al lado
@@ -239,12 +230,6 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
   - Terminado cuando: el mensaje de error del backend se muestra tal como viene en `detalle`, sin reescribirlo en el front
   - Terminado cuando: mientras se analiza el formato la pantalla indica que está trabajando; con un techo de 30 s la espera es parte de la experiencia (CHK025)
   - Cubre: HU-2, HU-3, Art. IV
-
-- [ ] **T023b** [HU-3] Agregar a la pantalla de detalle la confirmación de una estructura propuesta
-  - Terminado cuando: una estructura con `origen: "propuesta_ia"` se muestra **marcada como propuesta**, con el aviso que manda el servidor y la acción de confirmar al lado; una leída del archivo se muestra como hasta ahora
-  - Terminado cuando: el listado de tipos distingue un tipo con una propuesta pendiente de uno que nunca tuvo formato: los dos están incompletos, pero lo que el Administrador tiene que hacer es distinto
-  - Terminado cuando: la pantalla invita a comparar con el archivo antes de confirmar, porque el riesgo que queda después del descarte de RF-05d es que confirme sin mirar (riesgo 2 de `plan.md`)
-  - Cubre: HU-3, RF-08a, CE-11
 
 - [ ] **T024** [P] [HU-3] Agregar a `test_reconocimiento_de_formato.py` la prueba de que el formato se analiza una sola vez
   - Terminado cuando: consultar el detalle dos veces no vuelve a abrir el archivo, verificado de forma observable y no por inspección del código
@@ -337,16 +322,17 @@ anteriores siguen enteras.
   - Terminado cuando: cambiar `VIDA_MODELO_RECONOCIMIENTO` por otra tarea de LiteLLM cambia a quién se le pregunta, sin tocar código, y apagar el respaldo con `VIDA_IA_RESPALDO=0` devuelve el comportamiento de rechazo
   - Cubre: RF-18, CE-08, Art. V
 
-- [ ] **T038a** Verificar que ninguna estructura propuesta por la IA llega a un RO sin confirmarse
-  - Terminado cuando: con un tipo cuya única versión es una propuesta sin confirmar, `GET /tipos-de-documentacion-disponibles` **no** lo devuelve, y la pantalla del RO no lo muestra
-  - Terminado cuando: el repaso confirma que `version_vigente_id` nunca apunta a una versión sin `confirmada_en`, en ninguna de las rutas que lo escriben
-  - Cubre: CE-11, RF-08a, Art. II
+- [ ] **T038a** Verificar que la lectura directa tiene prioridad sobre la IA
+  - Terminado cuando: con los tres formatos que traen estilos de título o encabezados, el registro del servidor muestra **cero** llamadas a LiteLLM: un formato bien marcado no cuesta un token (Art. VI)
+  - Terminado cuando: el repaso confirma que el respaldo solo se invoca cuando la estructura leída queda vacía, en el único lugar que lo llama
+  - Cubre: RF-05c, Art. VI
 
 ## Fase 10 — Cierre
 
 - [ ] **T039** Pedir la revisión de [`checklists/requisitos.md`](./checklists/requisitos.md)
   - Terminado cuando: otro integrante del área RO marcó los 44 ítems que correspondan y dejó escrito junto a los que no se cumplen qué falta (Art. VII)
   - Terminado cuando: los seis ítems del respaldo con IA —CHK039 a CHK044— están revisados: son los más nuevos y los que menos ha visto nadie
+  - Terminado cuando: está revisado que la estructura reconocida alcanza para lo único que tiene que hacer —decirle a la 004 qué preguntar— y que no se le pide nada más
   - Nota: CHK030 dejó de ser el ítem que podía invalidar la funcionalidad. Lo resolvió la aclaración del 2026-11-04, que convirtió ese caso en el del respaldo
 
 - [ ] **T040** Ejecutar `/speckit-analyze` y resolver lo que reporte
@@ -379,7 +365,6 @@ flowchart LR
   T018a -.bloquea.-> T018b
   T018b -.bloquea.-> T018
   T021 -.bloquea.-> T023a
-  T022a -.bloquea.-> T023b
 ```
 
 - **HU-2 necesita HU-1:** no se puede cargar el formato de un tipo que no existe.
@@ -408,12 +393,7 @@ flowchart LR
 formato y el sistema reconoce su estructura. Es lo mínimo que entrega valor y lo que permite
 empezar a validar el Art. I con formatos reales.
 
-**Incremento 2 = Fases 6 y 7.** La confirmación de la estructura —que ahora no es solo visual:
-T022a y T023b son la compuerta de RF-08a— y el versionado completo.
-
-> **Si el respaldo con IA se usa desde el primer día, el MVP necesita la fase 6.** Sin T022a no
-> hay forma de confirmar una propuesta, y un tipo cuyo formato no trae estilos de título se
-> quedaría incompleto para siempre. T001 es lo que dice si ese es el caso del área.
+**Incremento 2 = Fases 6 y 7.** La revisión visual de la estructura y el versionado completo.
 
 **Incremento 3 = Fase 8.** La vista del RO, que es lo que la 003 necesita para arrancar. Si hay
 prisa por desbloquear la 003, esta fase puede adelantarse justo después del MVP.
