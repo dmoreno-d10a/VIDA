@@ -54,6 +54,13 @@ class Configuracion(BaseSettings):
     # Se puede encender en desarrollo con VIDA_DOCS_API=1.
     docs_api: bool = Field(default=False)
 
+    # --- Formatos de los tipos de documentacion (spec 002, RF-18) ---
+    # Los tres son configurables a proposito: cambiar las extensiones
+    # admitidas o el tamano maximo no debe exigir tocar codigo (CE-08).
+    almacen_formatos: Path = Field(default=Path("uploads/formatos"))
+    formato_mb_max: int = Field(default=25, gt=0)
+    formato_extensiones: str = Field(default="docx,xlsx")
+
     # --- Administrador inicial (RF-18). Solo se usan en la puesta en marcha. ---
     admin_inicial: str | None = Field(default=None)
     admin_inicial_contrasena: str | None = Field(default=None)
@@ -72,6 +79,37 @@ class Configuracion(BaseSettings):
         if self.contrasenas_comunes.is_absolute():
             return self.contrasenas_comunes
         return RAIZ_BACKEND / self.contrasenas_comunes
+
+
+    @property
+    def ruta_almacen_formatos(self) -> Path:
+        """Ruta absoluta de la carpeta donde se guardan los archivos de formato.
+
+        La ruta configurada es relativa a la raiz del repositorio, no a
+        `backend/`: el almacen vive en `uploads/`, que `.gitignore` excluye,
+        asi que ningun archivo cargado puede llegar al repositorio (Art. X.2).
+        """
+        if self.almacen_formatos.is_absolute():
+            return self.almacen_formatos
+        return RAIZ_REPOSITORIO / self.almacen_formatos
+
+    @property
+    def formato_tamano_max_bytes(self) -> int:
+        """El limite de RF-18 en bytes, que es como lo necesita la carga."""
+        return self.formato_mb_max * 1024 * 1024
+
+    @property
+    def extensiones_admitidas(self) -> tuple[str, ...]:
+        """Las extensiones de RF-04, en minusculas y sin punto.
+
+        Se admite escribirlas con o sin punto y con espacios de sobra: lo que
+        el Administrador configure se normaliza aqui, una sola vez.
+        """
+        partes = (
+            parte.strip().lstrip(".").lower()
+            for parte in self.formato_extensiones.split(",")
+        )
+        return tuple(parte for parte in partes if parte)
 
 
 def _mensaje_de_error(error: ValidationError) -> str:
