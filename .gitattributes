@@ -1,0 +1,19 @@
+# El repositorio se trabaja en Windows, con core.autocrlf=true. Eso ya guarda
+# LF en el repositorio, así que un clon en Linux o macOS recibe LF: no hay
+# riesgo de que bash falle por los finales de línea.
+#
+# Lo que agregan estas reglas es que los scripts también queden con LF **en
+# disco** al hacer checkout en Windows, en vez de convertirse a CRLF. Dos
+# motivos concretos:
+#
+#   1. .specify/scripts/ y .specify/extensions/git/scripts/ son de GitHub Spec
+#      Kit. Al conservar LF se mantienen byte a byte iguales a upstream, y
+#      comparar o actualizar la herramienta no muestra diferencias falsas.
+#   2. Git deja de avisar "LF will be replaced by CRLF" en cada commit que
+#      toque un script.
+
+*.sh    text eol=lf
+*.bash  text eol=lf
+
+# Los .ps1 son de PowerShell y se quedan con CRLF, que es su convención.
+*.ps1   text eol=crlf
