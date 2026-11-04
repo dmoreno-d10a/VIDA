@@ -66,25 +66,25 @@ dejar las dependencias y la configuración listas.
 **Propósito:** el esquema, los modelos y el almacén de archivos. Ninguna historia puede empezar
 antes de cerrar esta fase.
 
-- [ ] **T005** Crear `backend/app/modelos/tipo_documentacion.py` con `TipoDocumentacion` y `FormatoVersion`
+- [x] **T005** Crear `backend/app/modelos/tipo_documentacion.py` con `TipoDocumentacion` y `FormatoVersion`
   - Terminado cuando: `TipoDocumentacion` tiene `nombre VARCHAR(200)` obligatorio y único, `descripcion VARCHAR(1000)` opcional, `desactivado BOOLEAN` obligatorio por defecto `false`, `version_vigente_id` opcional con FK a `formato_version.id`, y `creado_en` / `actualizado_en` con `server_default=func.now()` como en `Usuario`
   - Terminado cuando: `FormatoVersion` tiene `tipo_id` obligatorio con FK y `ON DELETE CASCADE`, `numero INTEGER` obligatorio y **único por tipo**, `nombre_archivo_original VARCHAR(255)`, `extension VARCHAR(5)`, `tamano_bytes INTEGER`, `hash_sha256 CHAR(64)`, `ruta_almacenada VARCHAR(500)` **relativa** al almacén, `estructura JSONB` obligatoria y `creado_en`
   - Terminado cuando: el estado (`incompleto` / `activo` / `desactivado`) es una **propiedad derivada**, no una columna, con la precedencia de [`data-model.md`](./data-model.md)
   - Cubre: RF-02, RF-03, RF-19, RF-20
 
-- [ ] **T006** Crear la migración de Alembic de las dos tablas
+- [x] **T006** Crear la migración de Alembic de las dos tablas
   - Terminado cuando: `alembic upgrade head` y `alembic downgrade -1` corren sin error sobre una base limpia
   - Terminado cuando: la FK cruzada `version_vigente_id` se declara con `use_alter=True` y `ON DELETE SET NULL`; declararla dentro del `CREATE TABLE` falla porque cada tabla necesita que la otra exista
   - Terminado cuando: el índice único del nombre va sobre `lower(trim(nombre))`, no sobre `nombre`
   - Cubre: RF-02, RF-19
   - Ojo: si la 007 entra a `main` antes que esta rama, hay que regenerar esta migración sobre la cabeza nueva (`CONTRIBUTING.md`)
 
-- [ ] **T007** [P] Crear `backend/app/formatos/almacen.py`
+- [x] **T007** [P] Crear `backend/app/formatos/almacen.py`
   - Terminado cuando: guarda un archivo bajo la carpeta configurada con un nombre derivado de su SHA-256 —no del nombre que trajo el usuario, que puede tener acentos o caracteres que el sistema de archivos no acepte—, devuelve la ruta **relativa** y el hash, y sabe leer un archivo a partir de esa ruta relativa
   - Terminado cuando: crea la carpeta si no existe, y si no puede escribir lanza un error propio y distinguible, no un `OSError` crudo
   - Cubre: RF-09, RF-20
 
-- [ ] **T008** [P] Registrar los modelos nuevos en `backend/app/modelos/__init__.py`
+- [x] **T008** [P] Registrar los modelos nuevos en `backend/app/modelos/__init__.py`
   - Terminado cuando: Alembic los detecta con `--autogenerate` sin que haya que importarlos a mano en `env.py`
   - Ojo: es otro de los archivos que todas las ramas tocan
 
