@@ -35,6 +35,8 @@ erDiagram
         string hash_sha256
         string ruta_almacenada
         jsonb estructura
+        string origen
+        datetime confirmada_en
         datetime creado_en
     }
 ```
@@ -61,7 +63,7 @@ RF-03 pide distinguir tres estados. Se calculan, no se almacenan:
 
 | Estado | Condición | Lo ve el RO |
 |---|---|---|
-| `incompleto` | `version_vigente_id IS NULL` | No (RF-16) |
+| `incompleto` | `version_vigente_id IS NULL` —incluye el tipo con una propuesta de la IA sin confirmar | No (RF-16) |
 | `activo` | `version_vigente_id IS NOT NULL` y `desactivado = false` | Sí |
 | `desactivado` | `desactivado = true` | No (RF-16) |
 
@@ -93,11 +95,36 @@ comparación.
 | `hash_sha256` | `CHAR(64)` | Obligatorio | RF-20 |
 | `ruta_almacenada` | `VARCHAR(500)` | Obligatorio, **relativa** a `VIDA_ALMACEN_FORMATOS` | RF-09, RF-20 |
 | `estructura` | `JSONB` | Obligatoria | RF-05, RF-06, RF-20 |
+| `origen` | `VARCHAR(20)` | Obligatorio: `lectura` o `propuesta_ia` | RF-05c, RF-20 |
+| `confirmada_en` | `TIMESTAMPTZ` | Puede faltar solo si `origen = propuesta_ia` y nadie la ha confirmado | RF-08a, RF-20 |
 | `creado_en` | `TIMESTAMPTZ` | `now()` del servidor. Es el «desde cuándo» del historial | RF-21 |
 
 **`ruta_almacenada` es relativa** a la carpeta configurada, no absoluta. Una ruta absoluta
 guardada en la base rompe el sistema en cuanto se mueve el almacén, se despliega en otra máquina
 o se trabaja en un worktree con otra configuración.
+
+### `origen` y `confirmada_en`: qué puede quedar vigente
+
+`origen` dice de dónde salió la estructura, y es lo que hace rastreable la diferencia entre lo
+que el archivo trae marcado y lo que la IA propuso (RF-20).
+
+| `origen` | `confirmada_en` | Puede ser la versión vigente |
+|---|---|---|
+| `lectura` | la misma fecha de creación | **Sí**, de inmediato: no hay nada que haya podido inventarse |
+| `propuesta_ia` | vacío | **No.** El tipo sigue incompleto (RF-08a) |
+| `propuesta_ia` | con fecha | **Sí**, desde que el Administrador la confirmó |
+
+**La regla, dicha de una vez:** `tipo_documentacion.version_vigente_id` solo puede apuntar a una
+versión con `confirmada_en` definida. Es la única forma en que el criterio CE-11 —ningún tipo
+activo con estructura sin confirmar— deja de depender de que el código recuerde revisarlo.
+
+`confirmada_en` se escribe **una sola vez**. Confirmar no es un interruptor: una estructura
+confirmada no se «desconfirma», porque la versión es inmutable. Si el Administrador se equivocó,
+corrige el archivo y carga una versión nueva, igual que para cualquier otra corrección.
+
+**No se guarda quién confirmó.** La spec deja el registro de auditoría de usuarios fuera de
+alcance (sección 8); lo que el Art. IX necesita es saber que la estructura fue revisada y cuándo,
+no por quién.
 
 **Las versiones no se borran ni se editan.** Solo se insertan. Es lo que sostiene el Art. IX:
 una versión es el registro de qué estructura estaba vigente en un momento, y reescribirla
@@ -149,13 +176,28 @@ inventa un nombre (RF-11). La posición en la lista lo identifica.
 
 ### La regla de «sin estructura reconocible»
 
-Un formato se rechaza (RF-10) cuando, tras leerlo, la estructura queda vacía:
+Tras la lectura directa, la estructura está vacía cuando:
 
 - Word: `secciones` vacía.
 - Excel: ninguna hoja con al menos una columna.
 
 Un Excel con hojas pero sin un solo encabezado no sirve para generar nada, así que cuenta como
 sin estructura.
+
+Eso ya **no es el rechazo**: es la condición que dispara el respaldo con IA (RF-05c). El rechazo
+de RF-10 llega cuando, además, la propuesta de la IA queda vacía tras el descarte de RF-05d, o
+el respaldo está apagado, o no responde.
+
+### La estructura que propone la IA
+
+Tiene la **misma forma** que la leída del archivo: el `JSONB` no cambia según el origen, y eso es
+a propósito. Las funcionalidades 004, 005 y 006 consumen la estructura sin tener que saber de
+dónde salió; lo que necesite distinguirlo lee `origen`.
+
+En Word, una propuesta trae `nivel` como cualquier sección: la jerarquía es parte de lo que se
+le pide. Lo que la propuesta **no** puede traer es un `nombre` que no aparezca literalmente en el
+texto extraído del documento. El descarte ocurre antes de guardar, así que en la base de datos
+no queda registro de lo descartado: lo que no entró, no existió.
 
 ## Estados y transiciones de un tipo
 

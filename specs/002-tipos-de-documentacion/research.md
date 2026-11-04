@@ -11,7 +11,12 @@ tomó y qué se descartó. Lo que aquí se decide es el *cómo*; el *qué* está
 
 ## 1. ¿Interviene un modelo en el reconocimiento del formato?
 
-**Decisión: no. El reconocimiento es determinista, sin ninguna llamada a un modelo.**
+**Decisión: la lectura determinista es el camino principal; la IA solo entra como respaldo.**
+
+> **Revisada el 2026-11-04.** La decisión original era que no interviniera ningún modelo. La
+> aclaración de ese día la cambió: si la lectura determinista no reconoce nada, la IA propone
+> la estructura y el Administrador la confirma (RF-05c, RF-08a). Lo que sigue explica por qué
+> la lectura determinista conserva la prioridad; el respaldo está en la **decisión 11**.
 
 **Por qué.** El Art. I dice que el sistema no agrega, quita, renombra ni reordena nada de la
 estructura, y el Art. II que no completa ningún dato por su cuenta. Un modelo, por bueno que
@@ -23,15 +28,18 @@ El Art. VI refuerza la conclusión desde la eficiencia: prohíbe mandar un Word 
 completo a un modelo. Si el reconocimiento usara un modelo, habría que mandarle el documento
 o un resumen de él, y un resumen ya es una interpretación.
 
-**Consecuencia de alcance:** la funcionalidad 002 **no necesita LiteLLM ni VORKAN**. No toca
-la configuración de modelos, y por eso el Art. V aparece como no aplicable en su verificación
-constitucional. El primer uso de un modelo llega en la 004.
+**Consecuencia de alcance.** La 002 **sí llega a LiteLLM y VORKAN**, pero solo por el camino de
+respaldo. Eso hace que el Art. V vuelva a aplicar: el modelo no puede quedar escrito en el
+código. Su configuración es parte de los parámetros del sistema (funcionalidad 007), así que
+aquí entra como variable de entorno con valor por defecto, no como una pantalla nueva.
 
-**Qué se descartó.** Pedirle a un modelo que lea el formato y devuelva su estructura en JSON.
-Es más tolerante a formatos raros —un Word que use negritas en vez de estilos de título, por
-ejemplo— pero paga esa tolerancia con la posibilidad de inventar, que es justo lo que los
-artículos I y II prohíben. Cuando el reconocimiento determinista no encuentre estructura, la
-spec ya definió qué hacer: rechazar e informar (RF-10), no adivinar.
+**Qué se descartó.** Que la IA reconociera **todos** los formatos, reemplazando la lectura
+determinista. Es más uniforme —un solo camino que mantener— pero ninguna carga conservaría la
+garantía de que lo reconocido sale del archivo y nada más, el techo de 30 s quedaría expuesto
+en todas las cargas y no solo en las difíciles, y cada formato costaría tokens para resolver
+algo que una librería resuelve gratis y sin equivocarse. Donde el archivo trae estilos de
+título, la respuesta correcta ya está en el archivo: preguntarle a un modelo solo agrega una
+forma de equivocarse.
 
 ## 2. ¿Con qué se lee la estructura de un `.docx`?
 
@@ -184,7 +192,7 @@ el pendiente de retención del Art. X.4.
 
 ## 9. ¿Cómo se valida la generalización sin usar datos reales?
 
-**Decisión: los tres formatos de prueba se **generan** con `python-docx` y `openpyxl` desde un
+**Decisión: los formatos de prueba se **generan** con `python-docx` y `openpyxl` desde un
 script del repositorio, con datos ficticios.**
 
 **Por qué.** El Art. VIII pide validar con al menos un caso distinto al de referencia, y el
@@ -217,5 +225,48 @@ riesgo.
 | `python-docx>=1.1` | Leer la estructura de `.docx` | Es la librería establecida para Word en Python; expone párrafos y estilos sin interpretar el contenido |
 | `openpyxl>=3.1` | Leer la estructura de `.xlsx` | Estándar para Excel moderno; su modo solo lectura no carga el libro completo |
 
-Ninguna de las dos llama a la red ni a un modelo. No entra `pandas`, ni `markitdown`, ni ningún
-cliente de LiteLLM: la 002 no los necesita (ver decisión 1).
+| `httpx>=0.28` | Hablar con LiteLLM en el paso de respaldo | Ya está en el proyecto como dependencia de pruebas de la 001; solo sube a dependencia de ejecución |
+
+Ninguna de las dos primeras llama a la red ni a un modelo: la lectura del formato sigue siendo
+local y cerrada. No entra `pandas`, ni `markitdown`, ni un SDK de proveedor —LiteLLM se habla
+por HTTP, que es lo que lo hace intercambiable (Art. V, decisión 11).
+
+## 11. ¿Cómo entra la IA cuando la lectura determinista no reconoce nada?
+
+**Decisión: un paso de respaldo que propone la estructura, con tres cercos: se le manda texto y
+no el archivo, se descarta lo que no esté en el documento, y nada queda vigente sin que el
+Administrador lo confirme.**
+
+**Por qué hace falta.** La lectura determinista reconoce lo que Word marcó como título. Un
+formato que marque sus secciones con negrita o con tamaño de letra es, para una persona, un
+documento con secciones; para la librería, un archivo sin estructura. Rechazarlo era el
+comportamiento correcto mientras no hubiera alternativa, pero si esa es la convención del área,
+la plataforma no serviría para los formatos que existen (era el riesgo CHK030 de la checklist).
+
+**Los tres cercos**, que son lo que hace que esto no contradiga los artículos I y II:
+
+1. **No se le manda el archivo, se le manda texto.** Del `.docx` se extraen los párrafos con sus
+   señales de forma —negrita, tamaño, si está solo en su línea— y del `.xlsx` los nombres de las
+   hojas y sus primeras filas. Eso respeta el Art. VI, que prohíbe mandar el documento completo,
+   y mantiene el costo acotado al esqueleto en vez del contenido.
+2. **Se descarta lo que no esté en el documento.** Cada nombre que la IA proponga se busca
+   literalmente en el texto extraído; el que no aparezca no entra (RF-05d). Es una verificación
+   mecánica, no una confianza: convierte el criterio CE-04 en algo que una prueba puede afirmar.
+3. **El Administrador confirma.** La versión se guarda, pero no queda vigente y el tipo sigue
+   incompleto hasta que él la revise contra su archivo (RF-08a). La IA propone, no decide.
+
+**El modelo no queda en el código** (Art. V): se configura por variable de entorno, con la
+dirección de LiteLLM y el nombre de la tarea. El respaldo además **se puede apagar**: con
+`VIDA_IA_RESPALDO=0` la funcionalidad se comporta como el diseño original y rechaza el formato,
+lo que sirve para las pruebas y para un despliegue sin acceso a VORKAN.
+
+**Qué se descartó.**
+
+- **Una heurística propia sobre negritas y tamaños de letra**, sin IA. Es determinista, pero
+  decide por su cuenta qué párrafo era un título, con reglas que nadie escribió en ninguna spec:
+  inventa igual, solo que sin decirlo.
+- **Confiar en una señal de confianza del propio modelo** para decidir cuándo pedir
+  confirmación. Apoya el único control que existe en algo que produce la parte vigilada.
+- **Resolver el respaldo en segundo plano.** Separaría esta carga del techo de 30 s, pero la
+  aclaración del 2026-11-04 fijó que todo se resuelve en la misma petición; el respaldo trabaja
+  sobre texto, así que cabe.

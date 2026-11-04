@@ -32,16 +32,17 @@ riesgo tiene, pero sin ella la 003 no tiene de dónde partir.
 **Propósito:** cerrar los dos puntos que pueden hacer que todo lo demás esté mal planteado, y
 dejar las dependencias y la configuración listas.
 
-- [ ] **T001** Confirmar, abriendo **un formato Word real del área**, si marca sus secciones con estilos de título
-  - Terminado cuando: está escrito en [`research.md`](./research.md), bajo la decisión 2, qué se encontró: si usa `Título 1`…`Título 9`, si usa negrita o tamaño de letra, o si mezcla
-  - **Esta tarea bloquea T016 y T017.** Es el ítem CHK030 de la checklist y el riesgo número uno del plan: si el área no usa estilos de título, el RF-05a rechazaría todos sus formatos y hay que volver a la spec antes de escribir un solo lector
-  - Cubre: RF-05a, Art. II
+- [ ] **T001** [P] Averiguar, abriendo **un formato Word real del área**, cómo marca sus secciones
+  - Terminado cuando: está escrito en [`research.md`](./research.md), bajo la decisión 2, qué se encontró: si usa estilos de título, si usa negrita o tamaño de letra, o si mezcla
+  - **Ya no bloquea nada**, y esa es la diferencia que trajo la aclaración del 2026-11-04: un formato sin estilos de título ya no se rechaza, lo atiende el respaldo con IA (RF-05c). Lo que esta tarea responde ahora es **cuál de los dos caminos va a ser el habitual**, que es lo que dice cuánto va a costar la funcionalidad en tokens y en esperas
+  - Cubre: RF-05a, RF-05c, Art. II
 
-- [ ] **T002** Resolver en `spec.md` los cuatro vacíos de la checklist que bloquean la implementación
+- [x] **T002** Resolver en `spec.md` los cuatro vacíos de la checklist que bloquean la implementación
   - Terminado cuando: la spec responde (a) cuáles son los «equivalentes en otros idiomas» de `Título 1`…`Título 9` que se reconocen —CHK008—, (b) dónde se miden los 30 s: proceso en el servidor o punta a punta —CHK019—, (c) la regla de un nombre válido y si la comparación ignora mayúsculas y acentos —CHK011, CHK012— y (d) la longitud máxima del nombre y la descripción —CHK001—
   - Terminado cuando: cada respuesta queda escrita en la spec como requerimiento, no como nota al margen
   - El **marcado** de los ítems CHK001, CHK008, CHK011, CHK012 y CHK019 no es parte de esta tarea: lo hace quien revise, en T039 (Art. VII)
-  - Cubre: RF-02, RF-05a
+  - Cubre: RF-02, RF-02a, RF-05a
+  - **Resuelta el 2026-11-04.** (a) El estilo de título se reconoce por la marca interna del archivo, igual en cualquier idioma, así que no hace falta ninguna lista de equivalentes; (b) los 30 s se miden punta a punta; (c) y (d) quedaron en RF-02 y RF-02a. La respuesta a (a) además abrió el respaldo con IA, que es el cambio de alcance de esta pasada
 
 - [x] **T003** [P] Agregar `python-docx>=1.1` y `openpyxl>=3.1` a `backend/pyproject.toml`
   - Terminado cuando: `.venv/Scripts/python -m pip install -e ".[dev]"` instala las dos y `python -c "import docx, openpyxl"` no falla
@@ -52,6 +53,13 @@ dejar las dependencias y la configuración listas.
   - Terminado cuando: un `.env` de la 001, sin esas variables, sigue arrancando el backend
   - Cubre: RF-18
   - Ojo: `.env.ejemplo` es uno de los archivos que todas las ramas tocan; al resolver el conflicto se conservan las dos partes
+
+- [ ] **T004a** Agregar los cuatro parámetros del respaldo con IA y subir `httpx` a dependencia de ejecución
+  - Terminado cuando: existen `ia_respaldo` (por defecto `1`), `litellm_url` (por defecto `http://localhost:4000`), `litellm_api_key` (**sin** valor por defecto) y `modelo_reconocimiento` (por defecto `reconocimiento-de-formato`), con las cuatro en `.env.ejemplo` y la credencial **vacía** (Art. X.2)
+  - Terminado cuando: `httpx>=0.28` pasa de `[project.optional-dependencies].dev` a `dependencies`, porque ahora el backend lo necesita en ejecución y no solo para probar
+  - Terminado cuando: un `.env` sin ninguna de las cuatro arranca el backend, y sin credencial el respaldo queda indisponible sin tumbar nada
+  - Terminado cuando: `VIDA_MODELO_RECONOCIMIENTO` nombra una **tarea** de LiteLLM, no un modelo concreto: ningún nombre de modelo queda en el código ni en `.env.ejemplo` (Art. V)
+  - Cubre: RF-05c, Art. V, Art. X.2
 
 ## Fase 2 — Base compartida (bloquea a todas las historias)
 
@@ -87,12 +95,14 @@ verificable y no una opinión.
 
 - [ ] **T009** [P] Crear `backend/scripts/generar_formatos_de_prueba.py`
   - Terminado cuando: genera los tres archivos de [`quickstart.md`](./quickstart.md) con `python-docx` y `openpyxl`, **con datos ficticios** (Art. X.3): el Word de referencia con la estructura del Adapter Reverso, un Word de generalización con otra jerarquía, dos títulos de nombre repetido y uno sin texto, y un Excel con tres hojas, encabezados en la fila 3 en una de ellas y dos columnas de nombre repetido
+  - Terminado cuando: genera además un **cuarto** archivo: un Word que marca sus secciones **solo con negrita**, sin ningún estilo de título. Es el caso que ejercita el respaldo con IA (RF-05c), y sin él no hay forma de probarlo
   - Terminado cuando: el script **exporta también la estructura esperada** de cada archivo, como dato, al lado del código que lo genera
   - Terminado cuando: ningún archivo binario queda versionado en el repositorio
   - Cubre: Art. VIII, Art. X.3
 
 - [ ] **T010** [P] Agregar a `backend/tests/conftest.py` los apoyos de las pruebas de esta funcionalidad
-  - Terminado cuando: hay un apoyo que entrega los tres formatos generados en una carpeta temporal, y otro que apunta el almacén a una carpeta temporal para que las pruebas no escriban en `uploads/`
+  - Terminado cuando: hay un apoyo que entrega los cuatro formatos generados en una carpeta temporal, y otro que apunta el almacén a una carpeta temporal para que las pruebas no escriban en `uploads/`
+  - Terminado cuando: hay un apoyo que **sustituye el cliente de LiteLLM** por uno que devuelve una respuesta fija, para que ninguna prueba del repositorio salga a la red
   - Terminado cuando: las pruebas de la 001 siguen pasando sin cambios
 
 ## Fase 4 — HU-1: Crear un tipo de documentación (Prioridad: P1) 🎯 MVP
@@ -128,10 +138,12 @@ un RO no alcanza ninguna de esas rutas.
 ## Fase 5 — HU-2: Cargar el formato de un tipo (Prioridad: P1) 🎯 MVP
 
 **Objetivo:** el formato cargado queda con su estructura reconocida y el tipo pasa a activo.
-**Prueba independiente:** cargar los tres formatos generados y comparar la estructura reconocida
+**Prueba independiente:** cargar los cuatro formatos generados y comparar la estructura reconocida
 con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo queda intacto.
 
-> **No empieces esta fase sin T001 cerrada.**
+> Esta fase tiene ahora dos caminos: la lectura directa (T016, T017) y el respaldo con IA
+> (T018a, T018b). El primero es el principal; el segundo solo corre cuando el primero no
+> reconoce nada.
 
 - [ ] **T016** [HU-2] Crear `backend/app/formatos/lector_word.py`
   - Terminado cuando: devuelve `{"clase": "word", "secciones": [{"nombre", "nivel"}]}` en el orden del documento, tomando como sección **solo** los párrafos con estilo de título (RF-05a)
@@ -147,20 +159,38 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 
 - [ ] **T018** [HU-2] Crear `backend/app/formatos/reconocimiento.py` como puerta única
   - Terminado cuando: aplica las tres barreras **en orden** —tamaño, extensión y firma ZIP (`PK\x03\x04`)— antes de intentar leer nada, como dice la decisión 4 de `research.md`
-  - Terminado cuando: elige el lector por la extensión y decide si la estructura es reconocible: Word con `secciones` vacía, o Excel sin ninguna hoja con al menos una columna, se rechaza (RF-10)
-  - Terminado cuando: un archivo dañado o protegido produce un error propio y distinguible del de «sin estructura», porque el contrato les da mensajes distintos
-  - Cubre: RF-04, RF-10, RF-18
+  - Terminado cuando: elige el lector por la extensión, y si la lectura no reconoce nada —Word con `secciones` vacía, o Excel sin ninguna hoja con al menos una columna— **llama al respaldo** de T018b en vez de rechazar (RF-05c)
+  - Terminado cuando: devuelve, junto con la estructura, de dónde salió: `lectura` o `propuesta_ia`. Quien lo llame no tiene que adivinarlo
+  - Terminado cuando: rechaza (RF-10) solo cuando la propuesta también queda vacía, el respaldo está apagado o no respondió
+  - Terminado cuando: un archivo dañado o protegido produce un error propio y distinguible del de «sin estructura», porque el contrato les da mensajes distintos, y **no** llama al respaldo: un archivo que no se pudo abrir no tiene texto que mandar
+  - Cubre: RF-04, RF-05c, RF-10, RF-18
+
+- [ ] **T018a** [P] [HU-2] Crear `backend/app/formatos/texto_para_ia.py`
+  - Terminado cuando: de un `.docx` extrae los párrafos en orden con sus señales de forma —negrita, tamaño de letra, si el párrafo está solo en su línea— y de un `.xlsx` los nombres de las hojas con sus primeras filas
+  - Terminado cuando: **nunca** devuelve el archivo ni su contenido completo: solo el esqueleto, que es lo que el Art. VI permite mandar
+  - Terminado cuando: el texto que devuelve es exactamente el que T018b usa para verificar RF-05d, de modo que no se pueda descartar un nombre que sí estaba en el documento
+  - Cubre: RF-05c, Art. VI
+
+- [ ] **T018b** [HU-2] Crear `backend/app/formatos/propuesta_ia.py`
+  - Terminado cuando: es el **único** archivo de la 002 que sale a la red, habla con LiteLLM por HTTP con `httpx`, y lee dirección, credencial y nombre de la tarea de la configuración: ningún modelo queda escrito en el código (Art. V)
+  - Terminado cuando: **descarta todo nombre que no aparezca literalmente** en el texto de T018a, sin reemplazarlo por otro (RF-05d), y la estructura que devuelve tiene la misma forma que la de los lectores
+  - Terminado cuando: tiene un tiempo límite propio, menor que el techo de 30 s de la carga, y al agotarse devuelve «sin propuesta» en vez de una excepción que se escape
+  - Terminado cuando: con `VIDA_IA_RESPALDO=0`, o sin credencial, no intenta la llamada y devuelve «sin propuesta» de inmediato
+  - Terminado cuando: ni la credencial ni el texto del documento quedan escritos en el registro del servidor (Art. X.2)
+  - Cubre: RF-05c, RF-05d, Art. II, Art. V
 
 - [ ] **T019** [HU-2] Agregar `POST /tipos-de-documentacion/{id}/formato` a `backend/app/rutas/tipos_de_documentacion.py`
-  - Terminado cuando: escribe el archivo en el almacén **antes** de abrir la transacción, y dentro de ella toma el candado de la fila del tipo con `SELECT … FOR UPDATE`, inserta la versión con el número siguiente y apunta `version_vigente_id` a ella
+  - Terminado cuando: escribe el archivo en el almacén y resuelve el reconocimiento —respaldo con IA incluido— **antes** de abrir la transacción: dentro de ella no puede haber entrada ni salida de disco ni una espera de red, porque sostendría el candado del tipo durante segundos
+  - Terminado cuando: dentro de la transacción toma el candado de la fila del tipo con `SELECT … FOR UPDATE`, inserta la versión con el número siguiente y su `origen`, y apunta `version_vigente_id` a ella **solo si** la estructura salió de la lectura directa (RF-08a)
+  - Terminado cuando: con `origen: "propuesta_ia"` la respuesta lleva `vigente: false` y el `aviso` del contrato, y el tipo **sigue incompleto**
   - Terminado cuando: devuelve los códigos y los mensajes exactos del contrato: `201`, `404`, `413`, `415`, `422` (dos mensajes distintos) y `409`
   - Terminado cuando: el `413` se responde **mientras** se recibe el archivo, no después de recibirlo completo
   - Terminado cuando: en **los cuatro** casos de rechazo el tipo conserva su versión vigente, o sigue incompleto
   - Cubre: RF-04 a RF-11, RF-13, RF-18, RF-19
 
 - [ ] **T020** [P] [HU-2] Crear `backend/tests/test_reconocimiento_de_formato.py`
-  - Terminado cuando: compara la estructura reconocida de los **tres** formatos generados contra la esperada que exporta T009: nombres, cantidad, orden y nivel
-  - Terminado cuando: cubre los cuatro rechazos —extensión no admitida, `.doc` renombrado a `.docx`, archivo sobre el límite, Word sin estilos de título— y que el tipo quede intacto en cada uno
+  - Terminado cuando: compara la estructura reconocida de los **tres** formatos con estilos contra la esperada que exporta T009: nombres, cantidad, orden y nivel
+  - Terminado cuando: cubre los cuatro rechazos —extensión no admitida, `.doc` renombrado a `.docx`, archivo sobre el límite, y un Word sin estructura **con el respaldo apagado**— y que el tipo quede intacto en cada uno
   - Terminado cuando: cubre el título sin nombre, los nombres repetidos y la hoja con encabezados en la fila 3
   - Cubre: RF-17, CE-01, CE-04, CE-06; Art. I, II, VIII
 
@@ -170,6 +200,15 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
   - Cubre: HU-2, Art. IV
   - La carga desde la pantalla es T023a, porque la pantalla de detalle no existe hasta T023
 
+- [ ] **T020a** [P] [HU-2] Crear `backend/tests/test_respaldo_con_ia.py`
+  - Terminado cuando: con el Word de solo negritas y el cliente sustituido, la carga responde `201` con `origen: "propuesta_ia"`, `vigente: false`, y el tipo **sigue incompleto** (RF-08a, CE-11)
+  - Terminado cuando: un nombre que la respuesta fija trae y el documento **no** contiene se descarta y no aparece en la estructura guardada (RF-05d, CE-04). Es la prueba que convierte el Art. II en algo verificable para este camino
+  - Terminado cuando: si tras el descarte no queda nada, la carga responde `422` con el mensaje del contrato y el tipo queda como estaba
+  - Terminado cuando: con el respaldo apagado, y con el respaldo encendido pero el cliente fallando, el resultado es el mismo `422`: para el Administrador las tres fallas son una sola
+  - Terminado cuando: la lectura directa **tiene prioridad**: con un Word que sí trae estilos de título, el cliente sustituido no se llama ni una vez
+  - Terminado cuando: ninguna prueba sale a la red
+  - Cubre: RF-05c, RF-05d, RF-08a, CE-04, CE-11; Art. II, Art. V
+
 ## Fase 6 — HU-3: Confirmar la estructura reconocida (Prioridad: P2)
 
 **Objetivo:** el Administrador compara lo reconocido con su archivo antes de que un RO lo use.
@@ -178,9 +217,17 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
 
 - [ ] **T022** [HU-3] Agregar `GET /tipos-de-documentacion/{id}` con el detalle, la estructura vigente y el historial
   - Terminado cuando: devuelve exactamente la forma del contrato, con el historial de la versión más nueva a la más vieja y la vigente marcada
+  - Terminado cuando: cada entrada del historial trae su `origen` y su `confirmada_en`, y una propuesta sin confirmar aparece con `confirmada_en: null` (RF-20, RF-21)
   - Terminado cuando: la estructura sale de la base de datos, **sin volver a leer el archivo** (RF-07)
   - Terminado cuando: la `estructura` de las versiones anteriores **no** viene en esta respuesta
   - Cubre: RF-07, RF-08, RF-21
+
+- [ ] **T022a** [HU-3] Agregar `POST /tipos-de-documentacion/{id}/formato/versiones/{numero}/confirmacion`
+  - Terminado cuando: sin cuerpo, escribe `confirmada_en` **una sola vez** y apunta `version_vigente_id` a esa versión, con lo que el tipo queda activo (RF-08a)
+  - Terminado cuando: devuelve los códigos y los mensajes exactos del contrato: `200`, `404`, y `409` tanto para una versión leída del archivo como para una ya confirmada
+  - Terminado cuando: no existe la operación inversa: no hay forma de desconfirmar ni de editar la estructura al confirmarla
+  - Terminado cuando: `POST /activacion` sobre un tipo cuya única versión es una propuesta sin confirmar devuelve `409` con su mensaje propio
+  - Cubre: RF-08a, CE-11
 
 - [ ] **T023** [HU-3] Crear la pantalla de detalle en `frontend/app/(privado)/administracion/tipos-de-documentacion/[id]/page.tsx`
   - Terminado cuando: muestra las secciones de un Word con su nivel y su orden, o las hojas de un Excel con sus columnas y la fila de encabezados de cada una, de forma que se pueda comparar con el archivo abierto al lado
@@ -192,6 +239,12 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
   - Terminado cuando: el mensaje de error del backend se muestra tal como viene en `detalle`, sin reescribirlo en el front
   - Terminado cuando: mientras se analiza el formato la pantalla indica que está trabajando; con un techo de 30 s la espera es parte de la experiencia (CHK025)
   - Cubre: HU-2, HU-3, Art. IV
+
+- [ ] **T023b** [HU-3] Agregar a la pantalla de detalle la confirmación de una estructura propuesta
+  - Terminado cuando: una estructura con `origen: "propuesta_ia"` se muestra **marcada como propuesta**, con el aviso que manda el servidor y la acción de confirmar al lado; una leída del archivo se muestra como hasta ahora
+  - Terminado cuando: el listado de tipos distingue un tipo con una propuesta pendiente de uno que nunca tuvo formato: los dos están incompletos, pero lo que el Administrador tiene que hacer es distinto
+  - Terminado cuando: la pantalla invita a comparar con el archivo antes de confirmar, porque el riesgo que queda después del descarte de RF-05d es que confirme sin mirar (riesgo 2 de `plan.md`)
+  - Cubre: HU-3, RF-08a, CE-11
 
 - [ ] **T024** [P] [HU-3] Agregar a `test_reconocimiento_de_formato.py` la prueba de que el formato se analiza una sola vez
   - Terminado cuando: consultar el detalle dos veces no vuelve a abrir el archivo, verificado de forma observable y no por inspección del código
@@ -265,7 +318,8 @@ anteriores siguen enteras.
   - Cubre: RF-17, CE-01, CE-02; Art. VIII
 
 - [ ] **T035** **Medir la carga de un archivo de 25 MB contra el techo de 30 segundos**
-  - Terminado cuando: está medido y registrado cuánto tarda la carga completa de un `.xlsx` de 25 MB con muchas hojas, y dónde se midió —según lo que T002 haya fijado: proceso en el servidor o punta a punta—
+  - Terminado cuando: está medido y registrado cuánto tarda la carga completa de un `.xlsx` de 25 MB con muchas hojas, medido **punta a punta** como fijó T002
+  - Terminado cuando: está medido también el caso con **respaldo con IA**, que es el que más puede tardar, contra VORKAN y no contra el cliente sustituido
   - Terminado cuando: si se pasa de 30 s, **se detiene el cierre de la funcionalidad** y se decide con el responsable, en vez de descubrirlo en producción
   - Cubre: CE-09, riesgo del plan
 
@@ -278,15 +332,22 @@ anteriores siguen enteras.
   - Terminado cuando: las rutas del enrutador de administración responden `403` a un RO, y el repaso confirma que ninguna ruta nueva quedó sin la dependencia del enrutador
   - Cubre: RF-01, Art. X.1
 
-- [ ] **T038** Verificar que las extensiones admitidas y el tamaño máximo se cambian sin tocar código
+- [ ] **T038** Verificar que las extensiones admitidas, el tamaño máximo y el modelo se cambian sin tocar código
   - Terminado cuando: bajar `VIDA_FORMATO_MB_MAX` y reiniciar cambia el límite efectivo, comprobado con una carga
+  - Terminado cuando: cambiar `VIDA_MODELO_RECONOCIMIENTO` por otra tarea de LiteLLM cambia a quién se le pregunta, sin tocar código, y apagar el respaldo con `VIDA_IA_RESPALDO=0` devuelve el comportamiento de rechazo
   - Cubre: RF-18, CE-08, Art. V
+
+- [ ] **T038a** Verificar que ninguna estructura propuesta por la IA llega a un RO sin confirmarse
+  - Terminado cuando: con un tipo cuya única versión es una propuesta sin confirmar, `GET /tipos-de-documentacion-disponibles` **no** lo devuelve, y la pantalla del RO no lo muestra
+  - Terminado cuando: el repaso confirma que `version_vigente_id` nunca apunta a una versión sin `confirmada_en`, en ninguna de las rutas que lo escriben
+  - Cubre: CE-11, RF-08a, Art. II
 
 ## Fase 10 — Cierre
 
 - [ ] **T039** Pedir la revisión de [`checklists/requisitos.md`](./checklists/requisitos.md)
-  - Terminado cuando: otro integrante del área RO marcó los 38 ítems que correspondan y dejó escrito junto a los que no se cumplen qué falta (Art. VII)
-  - Terminado cuando: CHK030 está resuelto, porque es el único que puede invalidar la funcionalidad completa
+  - Terminado cuando: otro integrante del área RO marcó los 44 ítems que correspondan y dejó escrito junto a los que no se cumplen qué falta (Art. VII)
+  - Terminado cuando: los seis ítems del respaldo con IA —CHK039 a CHK044— están revisados: son los más nuevos y los que menos ha visto nadie
+  - Nota: CHK030 dejó de ser el ítem que podía invalidar la funcionalidad. Lo resolvió la aclaración del 2026-11-04, que convirtió ese caso en el del respaldo
 
 - [ ] **T040** Ejecutar `/speckit-analyze` y resolver lo que reporte
   - Terminado cuando: no quedan inconsistencias entre `spec.md`, `plan.md` y `tasks.md`
@@ -315,16 +376,18 @@ flowchart LR
   HU4 --> V
   HU5 --> V
   V --> C[Fase 10<br/>Cierre]
-  T001 -.bloquea.-> T016
-  T001 -.bloquea.-> T017
+  T018a -.bloquea.-> T018b
+  T018b -.bloquea.-> T018
   T021 -.bloquea.-> T023a
+  T022a -.bloquea.-> T023b
 ```
 
 - **HU-2 necesita HU-1:** no se puede cargar el formato de un tipo que no existe.
 - **HU-3 y HU-4 necesitan HU-2:** no hay estructura que mostrar ni versión que reemplazar.
 - **HU-5 solo necesita HU-1 y HU-2:** es independiente de HU-3 y HU-4, así que puede adelantarse
   si conviene desbloquear la 003.
-- **T001 bloquea los dos lectores.** Es la dependencia más importante que atraviesa fases.
+- **T018a bloquea T018b, y T018b bloquea T018.** El descarte de RF-05d compara contra el texto
+  que extrae T018a, así que esa es la pieza que va primero. T001 ya no bloquea a nadie.
 - **T021 bloquea T023a:** la carga desde la pantalla necesita el `FormData` de `lib/api.ts` y la
   pantalla de detalle de T023, que está en la fase siguiente.
 
@@ -332,20 +395,25 @@ flowchart LR
 
 | Fase | Tareas `[P]` | Por qué no chocan |
 |---|---|---|
-| 1 | T003, T004 | Archivos distintos: `pyproject.toml` y `configuracion.py` |
+| 1 | T001, T003, T004 | Averiguar qué usa el área no toca ningún archivo del repositorio |
 | 2 | T007, T008 | `almacen.py` es nuevo; `modelos/__init__.py` solo agrega importaciones |
 | 3 | T009, T010 | El generador y el `conftest` no se tocan |
-| 5 | T017, T020 | El lector de Excel y las pruebas pueden escribirse a la vez una vez fijada la forma de la estructura |
+| 5 | T017, T018a, T020, T020a | El lector de Excel, el extractor de texto y los dos archivos de prueba son todos distintos |
 | 7 | T027, T029 | Dos archivos de prueba distintos |
 | 8 | T030a, T031, T032 | Pruebas de backend, pantalla y prueba de extremo a extremo |
 
 ## Estrategia de entrega
 
-**MVP = Fases 1 a 5** (T001 a T021; la carga desde la pantalla llega con T023a). Al terminarlas, un Administrador crea un tipo, carga su
+**MVP = Fases 1 a 5** (T001 a T020a; la carga desde la pantalla llega con T023a). Al terminarlas, un Administrador crea un tipo, carga su
 formato y el sistema reconoce su estructura. Es lo mínimo que entrega valor y lo que permite
 empezar a validar el Art. I con formatos reales.
 
-**Incremento 2 = Fases 6 y 7.** La confirmación visual de la estructura y el versionado completo.
+**Incremento 2 = Fases 6 y 7.** La confirmación de la estructura —que ahora no es solo visual:
+T022a y T023b son la compuerta de RF-08a— y el versionado completo.
+
+> **Si el respaldo con IA se usa desde el primer día, el MVP necesita la fase 6.** Sin T022a no
+> hay forma de confirmar una propuesta, y un tipo cuyo formato no trae estilos de título se
+> quedaría incompleto para siempre. T001 es lo que dice si ese es el caso del área.
 
 **Incremento 3 = Fase 8.** La vista del RO, que es lo que la 003 necesita para arrancar. Si hay
 prisa por desbloquear la 003, esta fase puede adelantarse justo después del MVP.

@@ -31,7 +31,7 @@ lo que no dice.
 
 ## Claridad de los requerimientos
 
-- [ ] CHK008 El RF-05a dice «`Título 1` a `Título 9` **y sus equivalentes en otros idiomas**». ¿Está definido cuáles son esos equivalentes y en qué idiomas? Sin la lista, dos implementaciones razonables reconocerían cosas distintas [Ambigüedad, Spec §4 RF-05a]
+- [ ] CHK008 El RF-05a dice que el estilo de título se reconoce «por la marca que Word guarda dentro del archivo, que es la misma en cualquier idioma». ¿Es esa una afirmación verificable tal como está escrita, o deja al implementador decidir qué marca es? [Claridad, Spec §4 RF-05a]
 - [ ] CHK009 ¿Distingue la spec entre las tres causas de rechazo del RF-10 —dañado, protegido con contraseña, sin estructura reconocible— o las trata como una sola? El contrato de la API usa dos mensajes distintos, así que la spec debería decidirlo [Claridad, Spec §4 RF-10]
 - [ ] CHK010 ¿Está claro qué significa «primera fila con contenido» cuando la fila tiene una sola celda escrita y el resto vacías? El RF-05b fija la regla pero no el umbral [Ambigüedad, Spec §4 RF-05b]
 - [ ] CHK011 ¿Define la spec qué es un nombre de tipo válido? El contrato rechaza un nombre que queda vacío al quitar espacios, pero esa regla no está en ningún RF [Claridad, Spec §4 RF-02]
@@ -68,10 +68,10 @@ lo que no dice.
 
 ## Supuestos y dependencias
 
-- [ ] CHK030 **El supuesto más importante de toda la spec:** el RF-05a asume que los formatos Word del área marcan sus secciones con **estilos de título**. ¿Se confirmó abriendo un formato real? Si el área usa negrita o tamaño de letra, la plataforma rechazaría todos sus formatos y la funcionalidad no sirve [Supuesto sin validar, Spec §4 RF-05a]
+- [ ] CHK030 El RF-05a suponía que los formatos Word del área marcan sus secciones con **estilos de título**, y ese era el supuesto que podía invalidar la funcionalidad. El RF-05c lo neutralizó: ese caso ahora lo atiende el respaldo con IA. ¿Queda algún requerimiento que siga dependiendo del supuesto original? [Supuesto, Spec §4 RF-05a, RF-05c]
 - [ ] CHK031 ¿Está documentado el supuesto de que la carpeta del almacén es persistente y se respalda? Si se pierde, quedan versiones en la base sin archivo, y la 006 no podría generar nada [Supuesto, Spec §4 RF-09]
 - [ ] CHK032 ¿Está declarada la dependencia de la funcionalidad 001 —autenticación y los dos roles— y qué pasaría si sus reglas cambiaran? [Dependencia, Spec §2]
-- [ ] CHK033 ¿Queda explícito que esta funcionalidad **no** depende de ningún modelo, ni de LiteLLM ni de VORKAN? Es una propiedad valiosa de la 002 y conviene que esté dicha en la spec, no solo deducida en el plan [Completitud, Spec §4]
+- [ ] CHK033 La 002 depende de un modelo **solo** por el camino de respaldo. ¿Está dicho en la spec con esa precisión —qué parte no lo usa nunca y qué parte sí—, o hay que deducirlo del plan? [Claridad, Spec §4 RF-05c]
 
 ## Verificación contra la constitución
 
@@ -80,6 +80,18 @@ lo que no dice.
 - [ ] CHK036 **Art. VIII** — ¿Garantizan los requerimientos que ningún nombre de sección, hoja o columna quede escrito en la plataforma? El RF-17 lo exige; ¿hay algo en el resto de la spec que lo contradiga? [Consistencia constitucional, Spec §4 RF-17]
 - [ ] CHK037 **Art. IX** — ¿Alcanza lo que guarda el RF-20 para rastrear un campo de un documento generado hasta su origen, o falta algo que las funcionalidades 005 y 006 vayan a necesitar? [Completitud constitucional, Spec §4 RF-20]
 - [ ] CHK038 **Art. X.3** — ¿Está dicho en la spec que los casos de prueba usan solo datos ficticios, y que el formato real del cliente no entra al repositorio? Hoy esa decisión vive en `research.md`, que es plan [Completitud constitucional, Spec §9]
+
+## El respaldo con IA (RF-05c, RF-05d, RF-08a)
+
+> Agregados el 2026-11-04, cuando la aclaración sobre los estilos de título trajo el respaldo con
+> IA al alcance. Son los ítems que menos ojos han visto.
+
+- [ ] CHK039 ¿Está definido **qué se le manda** a la IA, con precisión suficiente para afirmar que el Art. VI se cumple? El RF-05c dice que la IA «proponga la estructura», pero qué recibe para hacerlo vive en el plan, no en la spec [Vacío, Spec §4 RF-05c]
+- [ ] CHK040 El RF-05d exige que cada nombre propuesto «aparezca **literalmente** en el documento». ¿Está definido qué cuenta como literal: distingue mayúsculas, acentos, espacios de sobra, un nombre partido en dos párrafos? Dos implementaciones razonables descartarían cosas distintas [Ambigüedad, Spec §4 RF-05d]
+- [ ] CHK041 ¿Está definido qué pasa si la IA propone una estructura **plausible pero equivocada** —todos los nombres están en el documento, pero no eran secciones— y el Administrador la confirma sin comparar? El descarte de RF-05d no atrapa ese caso, y es el único camino que queda para que el Art. II se rompa [Vacío, Spec §4 RF-05d, RF-08a]
+- [ ] CHK042 El RF-08a dice que una propuesta sin confirmar deja el tipo incompleto. ¿Está dicho en la spec que el Administrador puede **distinguir** un tipo con una propuesta pendiente de uno que nunca tuvo formato? Los dos están incompletos y lo que tiene que hacer es distinto [Vacío, Spec §4 RF-03, RF-08a]
+- [ ] CHK043 ¿Es consistente el RF-10 con el RF-05c? El RF-10 trata «la IA no está disponible» como un rechazo igual a «el archivo no tiene estructura». ¿Es eso lo que el negocio quiere, o un formato válido rechazado por una falla de un servicio interno merece otra respuesta? [Conflicto, Spec §4 RF-10, RF-05c]
+- [ ] CHK044 El criterio CE-09 mete la consulta a la IA dentro del techo de 30 s. ¿Está dicho qué pasa cuando la consulta sola se acerca a ese techo: se rechaza, se espera, o el techo admite excepción en este camino? [Medibilidad, Spec §9 CE-09]
 
 ## Notas
 
@@ -90,5 +102,7 @@ lo que no dice.
   `/speckit-specify` y `/speckit-clarify`.
 - Los hallazgos van escritos junto al ítem, no en otro archivo.
 
-**Si CHK030 no se cumple, no sigas con el resto:** es el único ítem que puede invalidar la
-funcionalidad completa, y se resuelve abriendo un formato del área y mirándolo.
+**Por dónde empezar:** CHK041 y CHK043. El primero es el único camino que queda para que una
+sección inventada llegue a un documento entregado; el segundo decide si un formato bueno se
+rechaza por una falla que no es suya. CHK030, que era el ítem que podía invalidar la
+funcionalidad, dejó de serlo el 2026-11-04.

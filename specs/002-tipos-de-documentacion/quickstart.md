@@ -52,9 +52,26 @@ VIDA_FORMATO_MB_MAX=25
 # Extensiones admitidas, separadas por coma (RF-04). Los formatos antiguos de
 # Office (.doc, .xls) no se admiten: ver la decisión 2 de research.md.
 VIDA_FORMATO_EXTENSIONES=docx,xlsx
+
+# --- Respaldo con IA (spec 002, RF-05c) ---
+
+# Cuando la lectura del archivo no reconoce ninguna estructura, la IA propone
+# una y el Administrador la confirma. En 0, ese formato se rechaza.
+VIDA_IA_RESPALDO=1
+
+# LiteLLM, que es por donde se llega a VORKAN. La credencial no tiene valor
+# por defecto y aquí va vacía: ninguna key real entra al repositorio (Art. X.2).
+VIDA_LITELLM_URL=http://localhost:4000
+VIDA_LITELLM_API_KEY=
+
+# Nombre de la TAREA en LiteLLM, no de un modelo. Qué modelo la atiende se
+# configura en LiteLLM, y elegirlo es de la funcionalidad 007 (Art. V).
+VIDA_MODELO_RECONOCIMIENTO=reconocimiento-de-formato
 ```
 
-Las tres tienen valor por defecto, así que un `.env` de la 001 sigue funcionando sin tocarlo.
+Todas tienen valor por defecto salvo la credencial, así que un `.env` de la 001 sigue funcionando
+sin tocarlo. Sin credencial el respaldo queda indisponible: la plataforma arranca igual y un
+formato sin estructura reconocible se rechaza, como en el diseño original.
 
 ## 3. Arrancar
 
@@ -68,20 +85,21 @@ menú de administración.
 
 ## 4. Generar los formatos de prueba
 
-Los tres casos son ficticios y se generan; no hay binarios en el repositorio, y el formato real
+Los cuatro casos son ficticios y se generan; no hay binarios en el repositorio, y el formato real
 del cliente no entra (Art. X.3, decisión 9 de `research.md`):
 
 ```bash
 cd backend && .venv/Scripts/python -m scripts.generar_formatos_de_prueba
 ```
 
-Deja tres archivos en una carpeta temporal y escribe en pantalla dónde quedaron:
+Deja cuatro archivos en una carpeta temporal y escribe en pantalla dónde quedaron:
 
 | Archivo | Qué contiene | Para qué |
 |---|---|---|
 | `referencia-adapter-reverso.docx` | La estructura del Adapter Reverso, con contenido ficticio | El formato que el área usa hoy |
 | `generalizacion-word.docx` | Otra jerarquía, dos títulos con el mismo nombre, uno sin texto | Art. VIII y los casos borde |
 | `generalizacion-excel.xlsx` | Tres hojas, encabezados en la fila 3 en una de ellas, dos columnas con el mismo nombre | Art. VIII en la rama de Excel |
+| `solo-negritas.docx` | Secciones marcadas con negrita, sin un solo estilo de título | El camino del respaldo con IA (RF-05c) |
 
 ## 5. El recorrido que prueba la funcionalidad
 
@@ -99,7 +117,20 @@ Después prueba los rechazos, y comprueba que en los cuatro el tipo **queda como
 | Un `.pdf` o un `.txt` | Rechazo, indicando que solo se admiten `.docx` y `.xlsx` |
 | Un `.doc` renombrado a `.docx` | Rechazo: la firma del archivo no corresponde (decisión 4 de `research.md`) |
 | Un archivo de más de 25 MB | Rechazo indicando el límite, **mientras** se recibe |
-| Un `.docx` sin ningún estilo de título | Rechazo: no se reconoció estructura, diciendo qué se esperaba |
+| Un `.docx` sin estructura y con `VIDA_IA_RESPALDO=0` | Rechazo: no se reconoció estructura, diciendo qué se esperaba |
+
+**HU-2b — El respaldo con IA.** Con `VIDA_IA_RESPALDO=1` y LiteLLM alcanzable, carga
+`solo-negritas.docx` en un tipo nuevo. Debe pasar lo siguiente, y conviene verificarlo entero
+porque es el camino más nuevo de la funcionalidad:
+
+- La carga se acepta, pero el tipo **sigue incompleto** y ningún RO lo ve (RF-08a).
+- La pantalla muestra la estructura **marcada como propuesta**, con el aviso del servidor, no
+  igual que una leída del archivo.
+- Cada nombre de la propuesta está en el documento. Si ves uno que no está, el descarte de
+  RF-05d no está funcionando, y eso es una falla del Art. II, no un detalle.
+- Al confirmar, el tipo pasa a **activo** y el RO ya lo ve.
+- Intentar activar el tipo **antes** de confirmar se rechaza con su mensaje propio.
+- Con un Word que **sí** trae estilos de título, la IA no interviene: la lectura directa manda.
 
 **HU-3 — Confirmar la estructura.** Abre el detalle del tipo y compara con el archivo abierto al
 lado. Lo que hay que verificar es que **no sobre, no falte y no esté reordenado nada**. Con
@@ -146,11 +177,16 @@ Lo que se agrega:
 |---|---|
 | `backend/tests/test_tipos_de_documentacion.py` | Crear, listar, modificar, desactivar, eliminar, y que un RO no alcance ninguna de esas rutas |
 | `backend/tests/test_reconocimiento_de_formato.py` | La estructura reconocida de los tres casos, comparada contra la esperada; y los cuatro rechazos |
+| `backend/tests/test_respaldo_con_ia.py` | El camino del respaldo con el cliente sustituido: el descarte de lo que no está en el documento, que el tipo siga incompleto sin confirmar, y que la lectura directa tenga prioridad |
 | `backend/tests/test_versiones_de_formato.py` | Tres reemplazos seguidos conservan las tres versiones anteriores con su archivo y su estructura |
 | `frontend/e2e/tipos-de-documentacion.spec.ts` | El recorrido del Administrador y que el RO no vea la opción |
 
 Las pruebas del backend usan la base `vida_pruebas`, que se crea sola, y los usuarios ficticios
 de `backend/tests/datos_ficticios.py`, como las de la 001.
+
+**Ninguna prueba sale a la red.** Las del respaldo sustituyen el cliente de LiteLLM por uno que
+devuelve una respuesta fija, así que corren sin VORKAN y sin credencial. Lo único que exige
+VORKAN de verdad es el recorrido manual de HU-2b y la medición de T035.
 
 **La prueba que más importa** es la de `test_reconocimiento_de_formato.py`: compara la estructura
 reconocida contra la que el script generador sabe que escribió. Es la única forma de verificar el
@@ -168,4 +204,6 @@ Son los criterios medibles de la sección 9 de la spec, en orden de verificació
 - [ ] 100 % de las cargas inválidas rechazadas con motivo, dejando el tipo como estaba
 - [ ] 0 tipos incompletos o desactivados visibles para un RO
 - [ ] 0 pérdidas al reemplazar: tras tres reemplazos, las tres versiones anteriores siguen enteras
-- [ ] Cambiar extensiones y tamaño máximo sin tocar código
+- [ ] 0 tipos activos con estructura propuesta sin confirmar
+- [ ] 0 nombres propuestos por la IA que no estén literalmente en el documento
+- [ ] Cambiar extensiones, tamaño máximo y tarea del modelo sin tocar código
