@@ -86,7 +86,8 @@ Esta funcionalidad existe para cerrar ese vacío: darle al Administrador el luga
 | ID | Requerimiento |
 |---|---|
 | RF-01 | El sistema debe permitir al **Administrador** crear tipos de documentación, y debe impedir esa acción a cualquier usuario con rol RO (Art. X, funcionalidad 001). |
-| RF-02 | El sistema debe registrar para cada tipo de documentación, como mínimo: nombre, descripción y estado. El nombre debe ser único entre los tipos existentes. |
+| RF-02 | El sistema debe registrar para cada tipo de documentación, como mínimo: nombre, descripción y estado. El nombre debe ser único entre los tipos existentes, puede medir hasta **200 caracteres**, y la descripción hasta **1000**. |
+| RF-02a | Un nombre de tipo es válido cuando no queda vacío al quitar los espacios de los extremos; el sistema lo **guarda tal como lo escribió** el Administrador. Para decidir si dos nombres están repetidos los compara **sin distinguir mayúsculas** y sin esos espacios, pero **los acentos sí distinguen**: «Adapter Reverso» y «adapter reverso» son el mismo nombre, «Factura» y «Fáctura» no. |
 | RF-03 | El sistema debe distinguir tres estados de un tipo: **incompleto** (sin formato cargado), **activo** (con formato cargado y disponible para los RO) y **desactivado** (no disponible para los RO, conservado para el Administrador). |
 | RF-04 | El sistema debe permitir cargar, para cada tipo, **un** archivo de formato vigente en Word (`.docx`) o Excel (`.xlsx`), y debe rechazar cualquier otro tipo de archivo —incluidos los formatos antiguos `.doc` y `.xls`— indicando cuáles admite. |
 | RF-05 | El sistema debe **reconocer la estructura** del formato al cargarlo: en Word, las secciones con sus nombres y su orden; en Excel, las hojas con su orden, y las columnas de cada hoja con sus nombres y su orden. |
@@ -188,7 +189,7 @@ Los tres conceptos que esta funcionalidad introduce en la plataforma. Se describ
 - **CE-06 · 100 % de las cargas inválidas** —extensión no admitida, archivo dañado, archivo protegido, sin estructura reconocible, tamaño excedido— se rechazan con un motivo y dejan el tipo en el estado que tenía antes del intento.
 - **CE-07 · 0 tipos incompletos o desactivados** aparecen entre las opciones que puede elegir un RO.
 - **CE-08 ·** cambiar las extensiones admitidas y el tamaño máximo de carga se logra **sin modificar código** (RF-18).
-- **CE-09 · 30 segundos** es el techo de la carga completa —recibir el archivo, reconocer su estructura y guardarla— para cualquier archivo dentro del tamaño admitido, incluido el de 25 MB. Se resuelve en la misma petición: no hay procesamiento en segundo plano.
+- **CE-09 · 30 segundos** es el techo de la carga completa para cualquier archivo dentro del tamaño admitido, incluido el de 25 MB. Se resuelve en la misma petición: no hay procesamiento en segundo plano. Se mide **punta a punta**: desde que el Administrador confirma la carga hasta que ve la estructura reconocida en pantalla, con la subida del archivo por la red incluida, en una conexión de la red del área. Es el tiempo que él espera, no el que el servidor tarda en procesar.
 - **CE-10 · 0 pérdidas al reemplazar:** tras reemplazar el formato de un tipo tres veces, las tres versiones anteriores conservan su archivo original y su estructura reconocida, y se puede decir cuál estaba vigente en cada momento (RF-19, RF-20).
 
 ## 10. Pendientes y preguntas abiertas
@@ -209,6 +210,12 @@ De la segunda pasada, que cerró lo que el plan había tenido que suponer:
 - Los **encabezados** de una hoja de Excel salen de su primera fila con contenido (RF-05b).
 - **Eliminar** solo alcanza a los tipos sin formato vigente, mientras no exista la actividad (RF-15a).
 - La carga completa tiene un techo de **30 segundos** y se resuelve en la misma petición (sección 9).
+
+De la tercera pasada, que cerró los vacíos que la checklist de requisitos había encontrado:
+
+- El nombre mide hasta **200 caracteres** y la descripción hasta **1000** (RF-02).
+- Un nombre es válido si no queda vacío al quitar espacios, y los nombres repetidos se comparan **sin mayúsculas pero con acentos** (RF-02a).
+- Los **30 segundos** se miden **punta a punta**, con la red incluida (sección 9).
 
 Queda un pendiente que no es de esta spec:
 
@@ -235,3 +242,6 @@ Queda un pendiente que no es de esta spec:
 | 2026-11-04 | ¿De qué fila de una hoja de Excel salen los nombres de las columnas? | De la **primera fila con contenido**, registrando cuál fue para que el Administrador lo confirme. Razón: muchos formatos traen un título o un logo arriba, y fijar la fila 1 rechazaría formatos legítimos. Agrega RF-05b. |
 | 2026-11-04 | Sin la actividad (003), el sistema no puede saber si un RO usó un tipo. ¿Qué se puede eliminar hoy? | Solo los tipos **sin formato vigente**. Razón: es lo único de lo que se puede afirmar con certeza que ningún RO lo eligió; la regla se amplía cuando la 003 traiga la actividad. Agrega RF-15a. |
 | 2026-11-04 | ¿Cuánto puede tardar la carga y el análisis de un formato? | Techo de **30 segundos** para cualquier archivo dentro del tamaño admitido, resuelto **en la misma petición**. Razón: cubre con certeza el caso de 25 MB sin introducir procesamiento en segundo plano, que traería complejidad que nadie pidió. Agrega un criterio medible a la sección 9. |
+| 2026-11-04 | ¿Cuánto pueden medir el nombre y la descripción de un tipo? | **200 y 1000 caracteres.** Razón: deja espacio para un nombre descriptivo sin que el listado se vuelva ilegible, y da algo concreto que validar. Afina RF-02. |
+| 2026-11-04 | ¿Qué es un nombre válido, y cómo se comparan dos nombres para ver si están repetidos? | Válido si **no queda vacío** al quitar los espacios de los extremos. Se comparan **sin distinguir mayúsculas** y sin esos espacios; **los acentos sí distinguen**. Razón: para el Administrador «Adapter Reverso» y «adapter reverso» son el mismo tipo, mientras que igualar acentos exigiría una capacidad extra del motor de base de datos para un error poco probable. Agrega RF-02a. |
+| 2026-11-04 | ¿Dónde se miden los 30 segundos de la carga? | **Punta a punta**, desde que el Administrador confirma hasta que ve la estructura en pantalla, con la subida por la red incluida. Razón: es el tiempo que él espera; medir solo el proceso en el servidor daría un número bueno con una espera mala, y con 25 MB la red pesa. Afina el criterio CE-09. |

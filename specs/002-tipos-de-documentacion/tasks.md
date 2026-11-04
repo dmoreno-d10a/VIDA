@@ -103,13 +103,13 @@ un RO no alcanza ninguna de esas rutas.
 
 - [ ] **T011** [P] [HU-1] Crear `backend/app/esquemas/tipos_de_documentacion.py` con los esquemas de creación, modificación y listado
   - Terminado cuando: el nombre se valida según lo que T002 haya fijado, y la respuesta del listado incluye el estado derivado y un resumen de la versión vigente, como dice el contrato
-  - Cubre: RF-02, RF-03
+  - Cubre: RF-02, RF-02a, RF-03
 
 - [ ] **T012** [HU-1] Crear `backend/app/rutas/tipos_de_documentacion.py` con `GET` y `POST` del listado
   - Terminado cuando: el enrutador declara `dependencies=[Depends(exigir_administrador)]` **una sola vez** para todo el archivo, como en `rutas/usuarios.py`: ninguna ruta se protege por su cuenta
   - Terminado cuando: `POST` devuelve `409` con el mensaje del contrato si el nombre ya existe, comparado sin mayúsculas ni espacios de sobra
   - Terminado cuando: `GET` devuelve la lista ordenada por nombre, con el estado de cada tipo
-  - Cubre: RF-01, RF-02, RF-03
+  - Cubre: RF-01, RF-02, RF-02a, RF-03
 
 - [ ] **T013** [HU-1] Registrar el enrutador en `backend/app/main.py`
   - Terminado cuando: `GET /tipos-de-documentacion` responde `401` sin sesión y `403` con sesión de RO
@@ -117,7 +117,7 @@ un RO no alcanza ninguna de esas rutas.
 
 - [ ] **T014** [P] [HU-1] Crear `backend/tests/test_tipos_de_documentacion.py` con las pruebas de creación y listado
   - Terminado cuando: cubre crear, nombre repetido en otras mayúsculas, nombre vacío, listado ordenado, y que un RO reciba `403` en **todas** las rutas del enrutador
-  - Cubre: RF-01, RF-02, CE-05
+  - Cubre: RF-01, RF-02, RF-02a, CE-05
 
 - [ ] **T015** [HU-1] Crear la pantalla de listado en `frontend/app/(privado)/administracion/tipos-de-documentacion/page.tsx` y la opción en `frontend/app/componentes/menu-por-rol.tsx`
   - Terminado cuando: el Administrador ve los tipos con su estado, puede crear uno, y un tipo incompleto se muestra como tal con el aviso de que todavía no puede usarse
