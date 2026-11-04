@@ -7,6 +7,7 @@ revierte al terminar.
 """
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -125,3 +126,102 @@ def usuarios(sesion_bd: Session) -> dict[str, object]:
         creados[ficticio.identificacion] = usuario
     sesion_bd.flush()
     return creados
+
+
+# ---------------------------------------------------------------------------
+# Apoyos de la funcionalidad 002 — tipos de documentación
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def formatos_de_prueba(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
+    """Los cuatro formatos ficticios, generados una vez por sesión.
+
+    Se generan y no se versionan: en el repositorio no hay binarios, y el
+    formato real del cliente no entra (Art. X.3).
+    """
+    from scripts.generar_formatos_de_prueba import generar_todos
+
+    return generar_todos(tmp_path_factory.mktemp("formatos"))
+
+
+@pytest.fixture
+def estructuras_esperadas() -> dict[str, dict]:
+    """La estructura que cada formato de prueba debe producir, como dato.
+
+    Vive al lado del generador y no de la prueba: comparar contra este
+    diccionario es lo que hace del Art. II algo verificable en vez de una
+    opinión de quien escribe la prueba.
+    """
+    from scripts import generar_formatos_de_prueba as generador
+
+    return {
+        "referencia": generador.ESTRUCTURA_REFERENCIA,
+        "generalizacion_word": generador.ESTRUCTURA_GENERALIZACION,
+        "generalizacion_excel": generador.ESTRUCTURA_EXCEL,
+        "solo_negritas": generador.ESTRUCTURA_SOLO_NEGRITAS_LEIDA,
+    }
+
+
+@pytest.fixture
+def almacen_temporal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[Path]:
+    """Apunta el almacén de formatos a una carpeta temporal.
+
+    Sin esto las pruebas escribirían en `uploads/`, que es el almacén de
+    desarrollo: una prueba no debe dejar archivos donde el desarrollador tiene
+    los suyos.
+    """
+    carpeta = tmp_path / "almacen"
+    monkeypatch.setenv("VIDA_ALMACEN_FORMATOS", str(carpeta))
+    # La configuración está memorizada: sin limpiar la memoria, la variable
+    # recién puesta no la ve nadie.
+    obtener_configuracion.cache_clear()
+    try:
+        yield carpeta
+    finally:
+        obtener_configuracion.cache_clear()
+
+
+@pytest.fixture
+def litellm_fijo(monkeypatch: pytest.MonkeyPatch):
+    """Sustituye la consulta a LiteLLM por una respuesta fija.
+
+    **Ninguna prueba del repositorio sale a la red.** El respaldo con IA se
+    prueba con esta sustitución: lo que se verifica es el descarte de RF-05d y
+    que la lectura directa tenga prioridad, no que el modelo acierte.
+
+    La costura es `propuesta_ia.consultar_litellm(mensaje: str) -> str`, la
+    única función de la funcionalidad que hace una petición HTTP. Está
+    declarada aquí porque el apoyo se escribe antes que el módulo (fase 3
+    antes que fase 5): T018b debe exponer ese nombre.
+
+    Devuelve un registrador para que la prueba compruebe **cuántas veces** se
+    llamó. Que sean cero con un formato bien marcado es lo que verifica el
+    Art. VI.
+    """
+
+    class ConsultaSustituida:
+        def __init__(self) -> None:
+            self.respuesta = "{}"
+            self.llamadas: list[str] = []
+            self.falla: Exception | None = None
+
+        def __call__(self, mensaje: str) -> str:
+            self.llamadas.append(mensaje)
+            if self.falla is not None:
+                raise self.falla
+            return self.respuesta
+
+        @property
+        def veces(self) -> int:
+            return len(self.llamadas)
+
+    sustituta = ConsultaSustituida()
+    # Falla ruidosamente si `propuesta_ia` deja de exponer `consultar_litellm`.
+    # Es a propósito: si esa costura cambia de nombre, lo que no se quiere es
+    # que las pruebas del respaldo pasen porque ya no sustituyen nada y
+    # empiecen a salir a la red de verdad.
+    monkeypatch.setattr("app.formatos.propuesta_ia.consultar_litellm", sustituta)
+    return sustituta
