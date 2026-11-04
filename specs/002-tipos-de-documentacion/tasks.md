@@ -54,7 +54,7 @@ dejar las dependencias y la configuración listas.
   - Cubre: RF-18
   - Ojo: `.env.ejemplo` es uno de los archivos que todas las ramas tocan; al resolver el conflicto se conservan las dos partes
 
-- [ ] **T004a** Agregar los cuatro parámetros del respaldo con IA y subir `httpx` a dependencia de ejecución
+- [x] **T004a** Agregar los cuatro parámetros del respaldo con IA y subir `httpx` a dependencia de ejecución
   - Terminado cuando: existen `ia_respaldo` (por defecto `1`), `litellm_url` (por defecto `http://localhost:4000`), `litellm_api_key` (**sin** valor por defecto) y `modelo_reconocimiento` (por defecto `reconocimiento-de-formato`), con las cuatro en `.env.ejemplo` y la credencial **vacía** (Art. X.2)
   - Terminado cuando: `httpx>=0.28` pasa de `[project.optional-dependencies].dev` a `dependencies`, porque ahora el backend lo necesita en ejecución y no solo para probar
   - Terminado cuando: un `.env` sin ninguna de las cuatro arranca el backend, y sin credencial el respaldo queda indisponible sin tumbar nada

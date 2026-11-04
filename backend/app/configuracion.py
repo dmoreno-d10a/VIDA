@@ -61,6 +61,18 @@ class Configuracion(BaseSettings):
     formato_mb_max: int = Field(default=25, gt=0)
     formato_extensiones: str = Field(default="docx,xlsx")
 
+    # --- Respaldo con IA del reconocimiento (spec 002, RF-05c) ---
+    # Cuando la lectura del archivo no reconoce ninguna estructura, se le pide
+    # a la IA que proponga una y el Administrador la confirma. El interruptor
+    # permite operar sin VORKAN: apagado, ese formato se rechaza.
+    #
+    # `modelo_reconocimiento` nombra una TAREA de LiteLLM, no un modelo: qué
+    # modelo la atiende se configura allá, y elegirlo es de la 007 (Art. V).
+    ia_respaldo: bool = Field(default=True)
+    litellm_url: str = Field(default="http://localhost:4000")
+    litellm_api_key: str | None = Field(default=None)
+    modelo_reconocimiento: str = Field(default="reconocimiento-de-formato")
+
     # --- Administrador inicial (RF-18). Solo se usan en la puesta en marcha. ---
     admin_inicial: str | None = Field(default=None)
     admin_inicial_contrasena: str | None = Field(default=None)
@@ -97,6 +109,16 @@ class Configuracion(BaseSettings):
     def formato_tamano_max_bytes(self) -> int:
         """El limite de RF-18 en bytes, que es como lo necesita la carga."""
         return self.formato_mb_max * 1024 * 1024
+
+    @property
+    def respaldo_ia_disponible(self) -> bool:
+        """Si el respaldo con IA se puede intentar en esta instalación.
+
+        Sin credencial no hay a quién preguntarle, así que vale lo mismo que
+        tenerlo apagado: la carga de un formato sin estructura reconocible se
+        rechaza (RF-10) en vez de fallar a medias.
+        """
+        return self.ia_respaldo and bool(self.litellm_api_key)
 
     @property
     def extensiones_admitidas(self) -> tuple[str, ...]:
