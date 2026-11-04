@@ -43,11 +43,11 @@ dejar las dependencias y la configuración listas.
   - El **marcado** de los ítems CHK001, CHK008, CHK011, CHK012 y CHK019 no es parte de esta tarea: lo hace quien revise, en T039 (Art. VII)
   - Cubre: RF-02, RF-05a
 
-- [ ] **T003** [P] Agregar `python-docx>=1.1` y `openpyxl>=3.1` a `backend/pyproject.toml`
+- [x] **T003** [P] Agregar `python-docx>=1.1` y `openpyxl>=3.1` a `backend/pyproject.toml`
   - Terminado cuando: `.venv/Scripts/python -m pip install -e ".[dev]"` instala las dos y `python -c "import docx, openpyxl"` no falla
   - Cubre: decisión 10 de `research.md`
 
-- [ ] **T004** [P] Agregar los tres parámetros nuevos a `backend/app/configuracion.py` y a `.env.ejemplo`
+- [x] **T004** [P] Agregar los tres parámetros nuevos a `backend/app/configuracion.py` y a `.env.ejemplo`
   - Terminado cuando: existen `almacen_formatos` (por defecto `uploads/formatos`), `formato_mb_max` (por defecto `25`) y `formato_extensiones` (por defecto `docx,xlsx`), con una propiedad que resuelve la ruta absoluta del almacén como ya lo hace `ruta_contrasenas_comunes`
   - Terminado cuando: un `.env` de la 001, sin esas variables, sigue arrancando el backend
   - Cubre: RF-18
