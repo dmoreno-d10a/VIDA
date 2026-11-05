@@ -355,3 +355,113 @@ def test_reemplazar_por_un_archivo_invalido_deja_el_formato_anterior(
     fila = next(f for f in cliente.get(TIPOS).json() if f["id"] == tipo_id)
     assert fila["estado"] == "activo"
     assert fila["version_vigente"]["numero"] == 1
+
+
+# --- RF-07, CE-03, Art. VI: el formato se analiza una sola vez --------------
+
+
+def test_consultar_el_detalle_no_vuelve_a_analizar_el_archivo(
+    cliente: TestClient,
+    usuarios,
+    almacen_temporal,
+    formatos_de_prueba,
+    monkeypatch,
+) -> None:
+    """RF-07: la estructura sale de la base de datos, no del archivo.
+
+    Se verifica de forma **observable** y no leyendo el código: se cuentan las
+    veces que se abre un lector. Si el detalle volviera a analizar, el
+    contador subiría, y con el respaldo con IA eso costaría además una
+    consulta al modelo por cada vez que alguien abre la pantalla.
+    """
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Adapter Reverso")
+    assert _cargar(
+        cliente, tipo_id, formatos_de_prueba["referencia"]
+    ).status_code == 201
+
+    from app.formatos import lector_word
+
+    lecturas: list[int] = []
+    leer_de_verdad = lector_word.leer
+
+    def leer_contando(contenido: bytes):
+        lecturas.append(len(contenido))
+        return leer_de_verdad(contenido)
+
+    monkeypatch.setattr(lector_word, "leer", leer_contando)
+
+    primera = cliente.get(f"{TIPOS}/{tipo_id}")
+    segunda = cliente.get(f"{TIPOS}/{tipo_id}")
+
+    assert primera.status_code == segunda.status_code == 200
+    assert primera.json()["version_vigente"]["estructura"] == (
+        segunda.json()["version_vigente"]["estructura"]
+    )
+    assert lecturas == []
+
+
+def test_el_historial_va_de_la_mas_nueva_a_la_mas_vieja(
+    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba
+) -> None:
+    """RF-21, y la vigente queda marcada."""
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Adapter Reverso")
+    for clave in ("referencia", "generalizacion_word", "generalizacion_excel"):
+        assert _cargar(cliente, tipo_id, formatos_de_prueba[clave]).status_code == 201
+
+    detalle = cliente.get(f"{TIPOS}/{tipo_id}").json()
+
+    assert [v["numero"] for v in detalle["historial"]] == [3, 2, 1]
+    assert [v["vigente"] for v in detalle["historial"]] == [True, False, False]
+
+
+def test_el_detalle_no_trae_la_estructura_de_las_versiones_anteriores(
+    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba
+) -> None:
+    """Si viniera, el detalle de un tipo con muchas versiones no tendría techo."""
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Adapter Reverso")
+    _cargar(cliente, tipo_id, formatos_de_prueba["referencia"])
+    _cargar(cliente, tipo_id, formatos_de_prueba["generalizacion_word"])
+
+    detalle = cliente.get(f"{TIPOS}/{tipo_id}").json()
+
+    assert all("estructura" not in v for v in detalle["historial"])
+
+
+def test_la_estructura_de_una_version_anterior_se_pide_por_su_ruta(
+    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba,
+    estructuras_esperadas,
+) -> None:
+    """RF-21: el reemplazo no pierde lo que había antes."""
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Adapter Reverso")
+    _cargar(cliente, tipo_id, formatos_de_prueba["referencia"])
+    _cargar(cliente, tipo_id, formatos_de_prueba["generalizacion_word"])
+
+    primera = cliente.get(f"{TIPOS}/{tipo_id}/formato/versiones/1")
+
+    assert primera.status_code == 200
+    assert primera.json()["estructura"] == estructuras_esperadas["referencia"]
+
+
+def test_una_version_que_no_existe_responde_404(
+    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba
+) -> None:
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Adapter Reverso")
+    _cargar(cliente, tipo_id, formatos_de_prueba["referencia"])
+
+    assert cliente.get(f"{TIPOS}/{tipo_id}/formato/versiones/7").status_code == 404
+
+
+def test_el_detalle_de_un_tipo_que_no_existe_responde_404(
+    cliente: TestClient, usuarios
+) -> None:
+    _entrar(cliente, fic.ADMINISTRADOR)
+
+    respuesta = cliente.get(f"{TIPOS}/99999")
+
+    assert respuesta.status_code == 404
+    assert respuesta.json()["detalle"] == "No existe ese tipo de documentación."
