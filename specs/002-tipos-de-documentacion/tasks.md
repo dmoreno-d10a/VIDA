@@ -214,24 +214,24 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 **Prueba independiente:** abrir el detalle de un tipo y comprobar que la estructura mostrada
 coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
 
-- [ ] **T022** [HU-3] Agregar `GET /tipos-de-documentacion/{id}` con el detalle, la estructura vigente y el historial
+- [x] **T022** [HU-3] Agregar `GET /tipos-de-documentacion/{id}` con el detalle, la estructura vigente y el historial
   - Terminado cuando: devuelve exactamente la forma del contrato, con el historial de la versión más nueva a la más vieja y la vigente marcada
   - Terminado cuando: la estructura sale de la base de datos, **sin volver a leer el archivo** (RF-07)
   - Terminado cuando: la `estructura` de las versiones anteriores **no** viene en esta respuesta
   - Cubre: RF-07, RF-08, RF-21
 
-- [ ] **T023** [HU-3] Crear la pantalla de detalle en `frontend/app/(privado)/administracion/tipos-de-documentacion/[id]/page.tsx`
+- [x] **T023** [HU-3] Crear la pantalla de detalle en `frontend/app/(privado)/administracion/tipos-de-documentacion/[id]/page.tsx`
   - Terminado cuando: muestra las secciones de un Word con su nivel y su orden, o las hojas de un Excel con sus columnas y la fila de encabezados de cada una, de forma que se pueda comparar con el archivo abierto al lado
   - Terminado cuando: un título sin nombre se muestra como tal, no como un espacio en blanco que parezca un error
   - Cubre: HU-3, RF-08
 
-- [ ] **T023a** [HU-3] Agregar la carga y el reemplazo del formato a la pantalla de detalle
+- [x] **T023a** [HU-3] Agregar la carga y el reemplazo del formato a la pantalla de detalle
   - Terminado cuando: el Administrador carga un archivo desde el detalle del tipo, usando el `FormData` que habilitó T021
   - Terminado cuando: el mensaje de error del backend se muestra tal como viene en `detalle`, sin reescribirlo en el front
   - Terminado cuando: mientras se analiza el formato la pantalla indica que está trabajando; con un techo de 30 s la espera es parte de la experiencia (CHK025)
   - Cubre: HU-2, HU-3, Art. IV
 
-- [ ] **T024** [P] [HU-3] Agregar a `test_reconocimiento_de_formato.py` la prueba de que el formato se analiza una sola vez
+- [x] **T024** [P] [HU-3] Agregar a `test_reconocimiento_de_formato.py` la prueba de que el formato se analiza una sola vez
   - Terminado cuando: consultar el detalle dos veces no vuelve a abrir el archivo, verificado de forma observable y no por inspección del código
   - Cubre: RF-07, CE-03, Art. VI
 
@@ -241,28 +241,28 @@ coincide con el archivo, y que reabrirlo no vuelve a analizarlo.
 **Prueba independiente:** reemplazar el formato tres veces y comprobar que las tres versiones
 anteriores siguen enteras.
 
-- [ ] **T025** [HU-4] Agregar `PATCH /tipos-de-documentacion/{id}` y `POST /tipos-de-documentacion/{id}/activacion`
+- [x] **T025** [HU-4] Agregar `PATCH /tipos-de-documentacion/{id}` y `POST /tipos-de-documentacion/{id}/activacion`
   - Terminado cuando: el `PATCH` cambia nombre y descripción sin tocar la estructura (RF-12), y devuelve `409` si el nombre choca con otro tipo
   - Terminado cuando: la activación es una ruta aparte del `PATCH`, y devuelve `409` al intentar activar un tipo incompleto
   - Cubre: RF-12, RF-14
 
-- [ ] **T026** [HU-4] Agregar `DELETE /tipos-de-documentacion/{id}` y `GET /tipos-de-documentacion/{id}/formato/versiones/{numero}`
+- [x] **T026** [HU-4] Agregar `DELETE /tipos-de-documentacion/{id}` y `GET /tipos-de-documentacion/{id}/formato/versiones/{numero}`
   - Terminado cuando: el `DELETE` solo procede si el tipo **no tiene versión vigente** (RF-15a), y si la tiene devuelve `409` con el mensaje que **ofrece desactivarlo** en la misma frase
   - Terminado cuando: la consulta de una versión anterior devuelve su estructura completa, desde la base de datos
   - Cubre: RF-15, RF-15a, RF-21
 
-- [ ] **T027** [P] [HU-4] Crear `backend/tests/test_versiones_de_formato.py`
+- [x] **T027** [P] [HU-4] Crear `backend/tests/test_versiones_de_formato.py`
   - Terminado cuando: tras **tres** reemplazos, las tres versiones anteriores conservan su archivo original, su hash y su estructura, y se puede decir cuál estaba vigente en cada momento
   - Terminado cuando: reemplazar por un archivo **idéntico** al vigente crea una versión nueva igual que cualquier otra, sin comparar contenidos
   - Terminado cuando: un reemplazo por un archivo inválido deja el tipo con la versión que ya tenía
   - Cubre: RF-13, RF-19, RF-20, CE-10, Art. IX
 
-- [ ] **T028** [HU-4] Agregar al front el reemplazo del formato, el historial de versiones, la desactivación y la eliminación
+- [x] **T028** [HU-4] Agregar al front el reemplazo del formato, el historial de versiones, la desactivación y la eliminación
   - Terminado cuando: el historial muestra cuál es la vigente y desde cuándo, y permite consultar la estructura de una anterior
   - Terminado cuando: el intento de eliminar un tipo con formato muestra el mensaje del backend, con la alternativa de desactivarlo
   - Cubre: HU-4, RF-21
 
-- [ ] **T029** [P] [HU-4] Completar `test_tipos_de_documentacion.py` con modificación, activación y eliminación
+- [x] **T029** [P] [HU-4] Completar `test_tipos_de_documentacion.py` con modificación, activación y eliminación
   - Terminado cuando: cubre renombrar a un nombre ya tomado, activar un tipo incompleto, eliminar un tipo incompleto y el rechazo de eliminar uno con formato
   - Cubre: RF-12, RF-14, RF-15, RF-15a
 
@@ -271,12 +271,12 @@ anteriores siguen enteras.
 **Objetivo:** el RO ve qué puede documentar. Es el punto de partida de la 003.
 **Prueba independiente:** como RO, ver solo los tipos activos y nada más.
 
-- [ ] **T030** [HU-5] Crear `backend/app/rutas/tipos_disponibles.py` y registrarlo en `main.py`
+- [x] **T030** [HU-5] Crear `backend/app/rutas/tipos_disponibles.py` y registrarlo en `main.py`
   - Terminado cuando: `GET /tipos-de-documentacion-disponibles` exige **solo sesión**, cualquier rol, y devuelve únicamente `id`, `nombre` y `descripcion` de los tipos activos, ordenados por nombre
   - Terminado cuando: no expone estructura, historial, versiones, tipos incompletos ni desactivados, **ni filtrando ni pidiendo a mano**
   - Cubre: RF-16
 
-- [ ] **T030a** [P] [HU-5] Crear `backend/tests/test_tipos_disponibles.py`
+- [x] **T030a** [P] [HU-5] Crear `backend/tests/test_tipos_disponibles.py`
   - Terminado cuando: un RO autenticado recibe **solo** los tipos activos, y la respuesta no trae estructura, historial ni versiones
   - Terminado cuando: un tipo **incompleto** y uno **desactivado** no aparecen en la respuesta, comprobado con los dos casos en la misma base
   - Terminado cuando: sin sesión la ruta responde `401`, y un Administrador también la puede consultar
@@ -284,21 +284,21 @@ anteriores siguen enteras.
   - Cubre: RF-16, CE-07
   - Es la prueba que faltaba: HU-5 era la única historia sin pruebas de backend, y en este proyecto no son opcionales
 
-- [ ] **T031** [P] [HU-5] Agregar al front la lista de tipos disponibles para el RO
+- [x] **T031** [P] [HU-5] Agregar al front la lista de tipos disponibles para el RO
   - Terminado cuando: cuando la lista viene vacía, se muestra el mensaje explícito de que no hay tipos y que debe solicitarlos al Administrador, no una pantalla vacía (HU-5)
   - Cubre: HU-5, RF-16
 
-- [ ] **T032** [P] [HU-5] Crear `frontend/e2e/tipos-de-documentacion.spec.ts`
+- [x] **T032** [P] [HU-5] Crear `frontend/e2e/tipos-de-documentacion.spec.ts`
   - Terminado cuando: cubre el recorrido del Administrador —crear, cargar, ver la estructura, reemplazar— y que el RO no vea la opción en el menú ni alcance la dirección escrita a mano
   - Cubre: CE-05
 
 ## Fase 9 — Validación
 
-- [ ] **T033** Ejecutar el caso de referencia y registrar el resultado
+- [x] **T033** Ejecutar el caso de referencia y registrar el resultado
   - Terminado cuando: la estructura reconocida del Word de referencia coincide exactamente con la esperada, y queda registrado en el PR
   - Cubre: CE-01
 
-- [ ] **T034** Ejecutar los dos casos de generalización y registrar el resultado
+- [x] **T034** Ejecutar los dos casos de generalización y registrar el resultado
   - Terminado cuando: el Word y el Excel ajenos al caso de referencia se reconocen bien, con sus casos borde incluidos (Art. VIII)
   - Cubre: RF-17, CE-01, CE-02; Art. VIII
 
@@ -308,21 +308,21 @@ anteriores siguen enteras.
   - Terminado cuando: si se pasa de 30 s, **se detiene el cierre de la funcionalidad** y se decide con el responsable, en vez de descubrirlo en producción
   - Cubre: CE-09, riesgo del plan
 
-- [ ] **T036** Verificar que no haya datos inventados y que todo sea rastreable
+- [x] **T036** Verificar que no haya datos inventados y que todo sea rastreable
   - Terminado cuando: ninguna sección, hoja o columna aparece en la estructura sin existir en el archivo, ni recibe un nombre que el archivo no traía (Art. II)
   - Terminado cuando: cada versión permite llegar a su archivo original y a su estructura (Art. IX)
   - Cubre: Art. II, Art. IX
 
-- [ ] **T037** Verificar que ningún RO alcance la administración, incluyendo las direcciones escritas a mano
+- [x] **T037** Verificar que ningún RO alcance la administración, incluyendo las direcciones escritas a mano
   - Terminado cuando: las rutas del enrutador de administración responden `403` a un RO, y el repaso confirma que ninguna ruta nueva quedó sin la dependencia del enrutador
   - Cubre: RF-01, Art. X.1
 
-- [ ] **T038** Verificar que las extensiones admitidas, el tamaño máximo y el modelo se cambian sin tocar código
+- [x] **T038** Verificar que las extensiones admitidas, el tamaño máximo y el modelo se cambian sin tocar código
   - Terminado cuando: bajar `VIDA_FORMATO_MB_MAX` y reiniciar cambia el límite efectivo, comprobado con una carga
   - Terminado cuando: cambiar `VIDA_MODELO_RECONOCIMIENTO` por otra tarea de LiteLLM cambia a quién se le pregunta, sin tocar código, y apagar el respaldo con `VIDA_IA_RESPALDO=0` devuelve el comportamiento de rechazo
   - Cubre: RF-18, CE-08, Art. V
 
-- [ ] **T038a** Verificar que la lectura directa tiene prioridad sobre la IA
+- [x] **T038a** Verificar que la lectura directa tiene prioridad sobre la IA
   - Terminado cuando: con los tres formatos que traen estilos de título o encabezados, el registro del servidor muestra **cero** llamadas a LiteLLM: un formato bien marcado no cuesta un token (Art. VI)
   - Terminado cuando: el repaso confirma que el respaldo solo se invoca cuando la estructura leída queda vacía, en el único lugar que lo llama
   - Cubre: RF-05c, Art. VI
@@ -335,10 +335,10 @@ anteriores siguen enteras.
   - Terminado cuando: está revisado que la estructura reconocida alcanza para lo único que tiene que hacer —decirle a la 004 qué preguntar— y que no se le pide nada más
   - Nota: CHK030 dejó de ser el ítem que podía invalidar la funcionalidad. Lo resolvió la aclaración del 2026-11-04, que convirtió ese caso en el del respaldo
 
-- [ ] **T040** Ejecutar `/speckit-analyze` y resolver lo que reporte
+- [x] **T040** Ejecutar `/speckit-analyze` y resolver lo que reporte
   - Terminado cuando: no quedan inconsistencias entre `spec.md`, `plan.md` y `tasks.md`
 
-- [ ] **T041** Actualizar la documentación
+- [x] **T041** Actualizar la documentación
   - Terminado cuando: el `README.md` refleja las pantallas y las variables nuevas, y el estado de la 002 queda actualizado en `.specify/memory/mapa-funcionalidades.md`
   - Ojo: los dos son archivos que todas las ramas tocan
 
