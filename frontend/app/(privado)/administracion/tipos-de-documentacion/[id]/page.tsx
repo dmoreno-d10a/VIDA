@@ -124,6 +124,10 @@ export default function DetalleDeTipo() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  // La estructura de una versión anterior se pide por su propia ruta, no
+  // viene en el detalle: así el detalle de un tipo con muchas versiones no
+  // crece sin límite.
+  const [anterior, setAnterior] = useState<Version | null>(null);
 
   const archivo = useRef<HTMLInputElement>(null);
 
@@ -178,6 +182,20 @@ export default function DetalleDeTipo() {
       archivo.current.value = "";
     }
     await cargar();
+  }
+
+  async function verVersion(numero: number) {
+    setAnterior(null);
+    setError(null);
+
+    const respuesta = await pedirApi<Version>(
+      `/tipos-de-documentacion/${id}/formato/versiones/${numero}`,
+    );
+    if (respuesta.ok) {
+      setAnterior(respuesta.datos);
+    } else {
+      setError(respuesta.detalle);
+    }
   }
 
   if (detalle === null) {
@@ -288,6 +306,7 @@ export default function DetalleDeTipo() {
                 <th scope="col">Archivo</th>
                 <th scope="col">Desde</th>
                 <th scope="col">Vigente</th>
+                <th scope="col">Estructura</th>
               </tr>
             </thead>
             <tbody>
@@ -297,10 +316,35 @@ export default function DetalleDeTipo() {
                   <td>{entrada.nombre_archivo_original}</td>
                   <td>{fecha(entrada.creado_en)}</td>
                   <td>{entrada.vigente ? "Sí" : "—"}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => verVersion(entrada.numero)}
+                    >
+                      Ver
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </>
+      ) : null}
+
+      {anterior ? (
+        <>
+          <h2>Estructura de la versión {anterior.numero}</h2>
+          <p>
+            {anterior.nombre_archivo_original} · {fecha(anterior.creado_en)}
+          </p>
+          {anterior.estructura.clase === "word" ? (
+            <EstructuraWord secciones={anterior.estructura.secciones} />
+          ) : (
+            <EstructuraExcel hojas={anterior.estructura.hojas} />
+          )}
+          <button type="button" onClick={() => setAnterior(null)}>
+            Cerrar
+          </button>
         </>
       ) : null}
     </section>

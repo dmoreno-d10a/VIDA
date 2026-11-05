@@ -90,6 +90,52 @@ export default function TiposDeDocumentacion() {
     await cargar();
   }
 
+  /** Ejecuta una acción y refresca, mostrando el motivo si el backend la niega. */
+  async function ejecutar(
+    ruta: string,
+    opciones: { metodo: string; cuerpo?: unknown },
+    mensajeDeExito: string,
+  ) {
+    setAviso(null);
+    setError(null);
+
+    const respuesta = await pedirApi(ruta, opciones);
+    if (!respuesta.ok) {
+      // Tal como viene: el backend es quien sabe por qué no se puede, y su
+      // mensaje ya ofrece la alternativa cuando la hay (RF-15).
+      setError(respuesta.detalle);
+      return;
+    }
+
+    setAviso(mensajeDeExito);
+    await cargar();
+  }
+
+  async function cambiarActivacion(fila: Fila) {
+    const desactivar = fila.estado !== "desactivado";
+    await ejecutar(
+      `/tipos-de-documentacion/${fila.id}/activacion`,
+      { metodo: "POST", cuerpo: { desactivado: desactivar } },
+      desactivar
+        ? `«${fila.nombre}» quedó desactivado: los RO ya no lo ven.`
+        : `«${fila.nombre}» volvió a circulación.`,
+    );
+  }
+
+  async function eliminar(fila: Fila) {
+    const confirmado = window.confirm(
+      `¿Eliminar «${fila.nombre}»? Esta acción no se puede deshacer.`,
+    );
+    if (!confirmado) {
+      return;
+    }
+    await ejecutar(
+      `/tipos-de-documentacion/${fila.id}`,
+      { metodo: "DELETE" },
+      `Tipo «${fila.nombre}» eliminado.`,
+    );
+  }
+
   return (
     <section className="tipos-de-documentacion">
       <h1>Tipos de documentación</h1>
@@ -142,6 +188,7 @@ export default function TiposDeDocumentacion() {
               <th scope="col">Descripción</th>
               <th scope="col">Estado</th>
               <th scope="col">Formato vigente</th>
+              <th scope="col">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -158,6 +205,17 @@ export default function TiposDeDocumentacion() {
                   {fila.version_vigente
                     ? `Versión ${fila.version_vigente.numero} (.${fila.version_vigente.extension})`
                     : "Ninguno"}
+                </td>
+                <td className="acciones">
+                  <button
+                    type="button"
+                    onClick={() => cambiarActivacion(fila)}
+                  >
+                    {fila.estado === "desactivado" ? "Reactivar" : "Desactivar"}
+                  </button>
+                  <button type="button" onClick={() => eliminar(fila)}>
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             ))}
