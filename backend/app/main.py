@@ -10,7 +10,13 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as ErrorHTTP
 
 from app.configuracion import obtener_configuracion
-from app.rutas import acceso, perfil, tipos_de_documentacion, usuarios
+from app.rutas import (
+    acceso,
+    perfil,
+    tipos_de_documentacion,
+    tipos_disponibles,
+    usuarios,
+)
 
 # Se lee al importar para que una configuración incompleta impida el arranque,
 # en vez de descubrirse en la primera petición (RF-23).
@@ -70,6 +76,7 @@ app.include_router(acceso.enrutador)
 app.include_router(usuarios.enrutador)
 app.include_router(perfil.enrutador)
 app.include_router(tipos_de_documentacion.enrutador)
+app.include_router(tipos_disponibles.enrutador)
 
 
 @app.get("/salud", tags=["salud"])
