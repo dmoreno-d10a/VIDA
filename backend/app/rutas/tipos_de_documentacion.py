@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from app.bd import obtener_sesion_bd
 from app.configuracion import obtener_configuracion
 from app.esquemas.tipos_de_documentacion import (
+    DetalleDeTipo,
     NuevoTipo,
     TipoEnListado,
     VersionConEstructura,
@@ -245,4 +246,62 @@ async def cargar_formato(
     tipo.version_vigente_id = version.id
     sesion_bd.commit()
     sesion_bd.refresh(version)
+    return version
+
+
+# --- RF-07, RF-08, RF-21: el detalle y el historial ------------------------
+
+
+def _historial_de(tipo: TipoDocumentacion) -> list[dict]:
+    """El historial, de la versión más nueva a la más vieja (RF-21)."""
+    return [
+        {
+            "numero": version.numero,
+            "nombre_archivo_original": version.nombre_archivo_original,
+            "creado_en": version.creado_en,
+            "vigente": version.id == tipo.version_vigente_id,
+        }
+        for version in sorted(tipo.versiones, key=lambda v: v.numero, reverse=True)
+    ]
+
+
+@enrutador.get("/{tipo_id}", response_model=DetalleDeTipo)
+def detalle(tipo_id: int, sesion_bd: BD) -> dict:
+    """El detalle del tipo, con su estructura vigente y su historial (RF-08).
+
+    La estructura sale de la base de datos: **el archivo no se vuelve a
+    abrir** (RF-07, Art. VI). Reabrir esta pantalla no cuesta un análisis, y
+    menos una consulta al modelo.
+    """
+    tipo = _buscar(sesion_bd, tipo_id)
+    return {
+        "id": tipo.id,
+        "nombre": tipo.nombre,
+        "descripcion": tipo.descripcion,
+        "estado": tipo.estado,
+        "version_vigente": tipo.version_vigente,
+        "historial": _historial_de(tipo),
+    }
+
+
+@enrutador.get(
+    "/{tipo_id}/formato/versiones/{numero}", response_model=VersionConEstructura
+)
+def version_anterior(tipo_id: int, numero: int, sesion_bd: BD) -> FormatoVersion:
+    """La estructura de una versión cualquiera del historial (RF-21).
+
+    Está en su propia ruta y no dentro del detalle para que el detalle de un
+    tipo con muchas versiones no crezca sin límite.
+    """
+    _buscar(sesion_bd, tipo_id)
+    version = sesion_bd.scalar(
+        select(FormatoVersion).where(
+            FormatoVersion.tipo_id == tipo_id, FormatoVersion.numero == numero
+        )
+    )
+    if version is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No existe esa versión del formato.",
+        )
     return version
