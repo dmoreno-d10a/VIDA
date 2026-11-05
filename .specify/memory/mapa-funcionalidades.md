@@ -19,7 +19,7 @@ Escribir una spec y su plan nunca está bloqueado por otra funcionalidad; lo que
 | N.º | Funcionalidad | Depende de | Estado |
 |---|---|---|---|
 | 001 | Acceso y roles | — | **Hecha** |
-| 002 | Tipos de documentación | 001 | Pendiente |
+| 002 | Tipos de documentación | 001 | **Hecha** |
 | 003 | Carga de información de una actividad | 002 | Pendiente |
 | 004 | Análisis y preguntas | 003 | Pendiente |
 | 005 | Generación y evaluación | 004, 007 | Pendiente |
@@ -28,18 +28,19 @@ Escribir una spec y su plan nunca está bloqueado por otra funcionalidad; lo que
 
 ## Qué se puede tomar ahora
 
-Con la 001 integrada:
+Con la 001 y la 002 integradas:
 
 | Se puede implementar ya | Espera a | Su spec y su plan se pueden escribir ya |
 |---|---|---|
-| **002** Tipos de documentación | — | Sí |
+| **003** Carga de información | — | Sí |
 | **007** Parámetros editables | — | Sí |
-| 003 Carga de información | 002 | Sí |
 | 004 Análisis y preguntas | 003 | Sí |
 | 005 Generación y evaluación | 004 y 007 | Sí |
 | 006 Revisión, historial y descarga | 005 | Sí |
 
-La **002** y la **007** son las dos únicas que hoy pueden implementarse en paralelo. De ahí en adelante, `002 → 003 → 004 → 005 → 006` es una cadena: cada una necesita lo que produce la anterior.
+La **003** y la **007** son las dos únicas que hoy pueden implementarse en paralelo. De ahí en adelante, `003 → 004 → 005 → 006` es una cadena: cada una necesita lo que produce la anterior.
+
+La 002 dejó disponible lo que la 003 necesita: los tipos de documentación con su formato cargado y su estructura reconocida, y la ruta `GET /tipos-de-documentacion-disponibles` con la que un RO elige entre los tipos activos.
 
 ---
 

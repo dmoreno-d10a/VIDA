@@ -110,14 +110,59 @@ cd frontend && npm install && npm run dev
 ```
 
 Abre **http://127.0.0.1:3000** y entra con el Administrador inicial. Desde
-**Administrar usuarios** creas a los RO del área.
+**Administrar usuarios** creas a los RO del área, y desde **Tipos de
+documentación** registras las clases de documento que la plataforma sabe
+generar y les cargas su formato.
+
+Un tipo nace **sin formato** y ningún RO lo ve. Al cargarle un `.docx` o un
+`.xlsx`, la plataforma reconoce su estructura —las secciones con estilo de
+título, o las hojas con sus columnas— y el tipo pasa a **activo**. La
+estructura se muestra en el detalle del tipo para que la compares con tu
+archivo; si no corresponde, corriges el archivo y lo vuelves a cargar, que
+crea una versión nueva sin perder las anteriores.
+
+### Variables de los formatos y del respaldo con IA
+
+Las siete tienen valor por defecto salvo la credencial, así que un `.env` de la
+001 sigue funcionando sin tocarlo. Están todas en `.env.ejemplo`:
+
+| Variable | Para qué | Por defecto |
+|---|---|---|
+| `VIDA_ALMACEN_FORMATOS` | Dónde se guardan los archivos cargados | `uploads/formatos` |
+| `VIDA_FORMATO_MB_MAX` | Tamaño máximo de un formato | `25` |
+| `VIDA_FORMATO_EXTENSIONES` | Extensiones admitidas | `docx,xlsx` |
+| `VIDA_IA_RESPALDO` | Si la IA propone la estructura cuando la lectura no reconoce nada | `1` |
+| `VIDA_LITELLM_URL` | Por dónde se llega a VORKAN | `http://localhost:4000` |
+| `VIDA_LITELLM_API_KEY` | Credencial de LiteLLM. **Sin valor por defecto** | — |
+| `VIDA_MODELO_RECONOCIMIENTO` | Nombre de la **tarea** en LiteLLM, no de un modelo | `reconocimiento-de-formato` |
+
+Sin credencial el respaldo queda indisponible: la plataforma arranca igual, y
+un formato del que no se reconoce nada se rechaza diciendo qué se esperaba
+encontrar. Qué modelo atiende la tarea se configura en LiteLLM, no aquí
+(Art. V); elegirlo es de la funcionalidad 007.
 
 ### Pruebas
 
 ```bash
-cd backend  && .venv/Scripts/python -m pytest          # 76 pruebas
+cd backend  && .venv/Scripts/python -m pytest          # 160 pruebas
 cd frontend && npx playwright install chromium         # una sola vez
-cd frontend && npx playwright test                     # visibilidad por rol
+cd frontend && npx playwright test                     # visibilidad y tipos
+```
+
+Para probar la carga de un formato hace falta un archivo, y en el repositorio
+no hay binarios (Art. X.3). Se generan, todos ficticios:
+
+```bash
+cd backend && .venv/Scripts/python -m scripts.generar_formatos_de_prueba
+```
+
+Las pruebas de extremo a extremo que cargan un archivo se **omiten** si no les
+pasas uno en `VIDA_FORMATO_DE_PRUEBA`. Y para repetir la validación de la
+funcionalidad 002 —el caso de referencia, los de generalización y la medición
+contra el techo de 30 s—:
+
+```bash
+cd backend && .venv/Scripts/python -m scripts.validar_formatos_002
 ```
 
 Las pruebas del backend usan una base aparte (`vida_pruebas`), que se crea
@@ -171,12 +216,13 @@ vida/
 ├── specs/                 # Una carpeta por especificación
 ├── backend/               # FastAPI: toda la lógica y las credenciales (Art. IV)
 │   ├── app/
-│   │   ├── modelos/       # usuario y sesión
+│   │   ├── modelos/       # usuario, sesión y tipo de documentación
 │   │   ├── seguridad/     # contraseñas, sesiones y autorización
+│   │   ├── formatos/      # lectura del formato, almacén y respaldo con IA
 │   │   ├── esquemas/      # entradas y salidas de la API
-│   │   └── rutas/         # acceso, usuarios y perfil
+│   │   └── rutas/         # acceso, usuarios, perfil y tipos de documentación
 │   ├── alembic/           # Migraciones
-│   ├── scripts/           # crear_admin.py
+│   ├── scripts/           # crear_admin.py, formatos de prueba, validación
 │   └── tests/             # pytest
 ├── frontend/              # Next.js: sin lógica de permisos ni credenciales
 │   ├── app/               # Pantallas
@@ -190,3 +236,4 @@ vida/
 - [x] Constitución v1.0.0
 - [x] Mapa de funcionalidades
 - [x] 001 — Acceso y roles
+- [x] 002 — Tipos de documentación
