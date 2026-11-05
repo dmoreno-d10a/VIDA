@@ -22,6 +22,9 @@ dependencies = [
     # LiteLLM se habla por HTTP y no con un SDK de proveedor: es lo que lo
     # hace intercambiable (Art. V, decision 11 de research.md).
     "httpx>=0.28",
+    # La carga del formato es multipart/form-data, el unico punto de la
+    # plataforma que no es JSON. FastAPI lo necesita para leer el archivo.
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
