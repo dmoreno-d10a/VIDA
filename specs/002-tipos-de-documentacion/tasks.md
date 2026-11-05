@@ -145,32 +145,32 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
 > (T018a, T018b). El primero es el principal; el segundo solo corre cuando el primero no
 > reconoce nada.
 
-- [ ] **T016** [HU-2] Crear `backend/app/formatos/lector_word.py`
+- [x] **T016** [HU-2] Crear `backend/app/formatos/lector_word.py`
   - Terminado cuando: devuelve `{"clase": "word", "secciones": [{"nombre", "nivel"}]}` en el orden del documento, tomando como sección **solo** los párrafos con estilo de título (RF-05a)
   - Terminado cuando: un título sin texto se registra con `"nombre": null`, sin inventarle uno (RF-11)
   - Terminado cuando: dos títulos de nombre repetido aparecen **los dos**, sin fusionarse ni renumerarse (RF-06)
   - Cubre: RF-05, RF-05a, RF-06, RF-11
 
-- [ ] **T017** [P] [HU-2] Crear `backend/app/formatos/lector_excel.py`
+- [x] **T017** [P] [HU-2] Crear `backend/app/formatos/lector_excel.py`
   - Terminado cuando: devuelve `{"clase": "excel", "hojas": [{"nombre", "fila_de_encabezados", "columnas"}]}` con las hojas en el orden del libro
   - Terminado cuando: los encabezados salen de la **primera fila con dos o más celdas con contenido** de cada hoja —o de la primera con una, si ninguna llega a dos—, y `fila_de_encabezados` deja registrado cuál fue (RF-05b)
   - Terminado cuando: usa `openpyxl` en modo solo lectura, y las columnas de nombre repetido se conservan todas
   - Cubre: RF-05, RF-05b, RF-06, RF-11
 
-- [ ] **T018** [HU-2] Crear `backend/app/formatos/reconocimiento.py` como puerta única
+- [x] **T018** [HU-2] Crear `backend/app/formatos/reconocimiento.py` como puerta única
   - Terminado cuando: aplica las tres barreras **en orden** —tamaño, extensión y firma ZIP (`PK\x03\x04`)— antes de intentar leer nada, como dice la decisión 4 de `research.md`
   - Terminado cuando: elige el lector por la extensión, y si la lectura no reconoce nada —Word con `secciones` vacía, o Excel sin ninguna hoja con al menos una columna— **llama al respaldo** de T018b en vez de rechazar (RF-05c)
   - Terminado cuando: rechaza (RF-10) solo cuando la propuesta también queda vacía, el respaldo está apagado o no respondió
   - Terminado cuando: un archivo dañado o protegido produce un error propio y distinguible del de «sin estructura», porque el contrato les da mensajes distintos, y **no** llama al respaldo: un archivo que no se pudo abrir no tiene texto que mandar
   - Cubre: RF-04, RF-05c, RF-10, RF-18
 
-- [ ] **T018a** [P] [HU-2] Crear `backend/app/formatos/texto_para_ia.py`
+- [x] **T018a** [P] [HU-2] Crear `backend/app/formatos/texto_para_ia.py`
   - Terminado cuando: de un `.docx` extrae los párrafos en orden con sus señales de forma —negrita, tamaño de letra, si el párrafo está solo en su línea— y de un `.xlsx` los nombres de las hojas con sus primeras filas
   - Terminado cuando: **nunca** devuelve el archivo ni su contenido completo: solo el esqueleto, que es lo que el Art. VI permite mandar
   - Terminado cuando: el texto que devuelve es exactamente el que T018b usa para verificar RF-05d, de modo que no se pueda descartar un nombre que sí estaba en el documento
   - Cubre: RF-05c, Art. VI
 
-- [ ] **T018b** [HU-2] Crear `backend/app/formatos/propuesta_ia.py`
+- [x] **T018b** [HU-2] Crear `backend/app/formatos/propuesta_ia.py`
   - Terminado cuando: es el **único** archivo de la 002 que sale a la red, habla con LiteLLM por HTTP con `httpx`, y lee dirección, credencial y nombre de la tarea de la configuración: ningún modelo queda escrito en el código (Art. V)
   - Terminado cuando: **descarta todo nombre que no aparezca literalmente** en el texto de T018a, sin reemplazarlo por otro (RF-05d), y la estructura que devuelve tiene la misma forma que la de los lectores
   - Terminado cuando: tiene un tiempo límite propio, menor que el techo de 30 s de la carga, y al agotarse devuelve «sin propuesta» en vez de una excepción que se escape
@@ -178,7 +178,7 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
   - Terminado cuando: ni la credencial ni el texto del documento quedan escritos en el registro del servidor (Art. X.2)
   - Cubre: RF-05c, RF-05d, Art. II, Art. V
 
-- [ ] **T019** [HU-2] Agregar `POST /tipos-de-documentacion/{id}/formato` a `backend/app/rutas/tipos_de_documentacion.py`
+- [x] **T019** [HU-2] Agregar `POST /tipos-de-documentacion/{id}/formato` a `backend/app/rutas/tipos_de_documentacion.py`
   - Terminado cuando: escribe el archivo en el almacén y resuelve el reconocimiento —respaldo con IA incluido— **antes** de abrir la transacción: dentro de ella no puede haber entrada ni salida de disco ni una espera de red, porque sostendría el candado del tipo durante segundos
   - Terminado cuando: dentro de la transacción toma el candado de la fila del tipo con `SELECT … FOR UPDATE`, inserta la versión con el número siguiente y apunta `version_vigente_id` a ella
   - Terminado cuando: la respuesta es la misma venga la estructura de la lectura o de la propuesta de la IA: una sola forma, sin estados intermedios
@@ -187,19 +187,19 @@ con la esperada; cargar los cuatro archivos inválidos y comprobar que el tipo q
   - Terminado cuando: en **los cuatro** casos de rechazo el tipo conserva su versión vigente, o sigue incompleto
   - Cubre: RF-04 a RF-11, RF-13, RF-18, RF-19
 
-- [ ] **T020** [P] [HU-2] Crear `backend/tests/test_reconocimiento_de_formato.py`
+- [x] **T020** [P] [HU-2] Crear `backend/tests/test_reconocimiento_de_formato.py`
   - Terminado cuando: compara la estructura reconocida de los **tres** formatos con estilos contra la esperada que exporta T009: nombres, cantidad, orden y nivel
   - Terminado cuando: cubre los cuatro rechazos —extensión no admitida, `.doc` renombrado a `.docx`, archivo sobre el límite, y un Word sin estructura **con el respaldo apagado**— y que el tipo quede intacto en cada uno
   - Terminado cuando: cubre el título sin nombre, los nombres repetidos y la hoja con encabezados en la fila 3
   - Cubre: RF-17, CE-01, CE-04, CE-06; Art. I, II, VIII
 
-- [ ] **T021** [HU-2] Extender `frontend/lib/api.ts` para aceptar `FormData`
+- [x] **T021** [HU-2] Extender `frontend/lib/api.ts` para aceptar `FormData`
   - Terminado cuando: cuando el cuerpo es un `FormData`, **no** fija `Content-Type`: el navegador tiene que poner el suyo con el delimitador
   - Terminado cuando: las llamadas JSON que ya existen siguen funcionando sin cambios
   - Cubre: HU-2, Art. IV
   - La carga desde la pantalla es T023a, porque la pantalla de detalle no existe hasta T023
 
-- [ ] **T020a** [P] [HU-2] Crear `backend/tests/test_respaldo_con_ia.py`
+- [x] **T020a** [P] [HU-2] Crear `backend/tests/test_respaldo_con_ia.py`
   - Terminado cuando: con el Word de solo negritas y el cliente sustituido, la carga responde `201` y el tipo queda **activo** con la estructura propuesta
   - Terminado cuando: un nombre que la respuesta fija trae y el documento **no** contiene se descarta y no aparece en la estructura guardada (RF-05d, CE-04). Es la prueba que convierte el Art. II en algo verificable para este camino
   - Terminado cuando: si tras el descarte no queda nada, la carga responde `422` con el mensaje del contrato y el tipo queda como estaba
