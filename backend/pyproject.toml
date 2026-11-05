@@ -19,9 +19,6 @@ dependencies = [
     # ver la decision 1 de specs/002-tipos-de-documentacion/research.md.
     "python-docx>=1.1",
     "openpyxl>=3.1",
-    # LiteLLM se habla por HTTP y no con un SDK de proveedor: es lo que lo
-    # hace intercambiable (Art. V, decision 11 de research.md).
-    "httpx>=0.28",
     # La carga del formato es multipart/form-data, el unico punto de la
     # plataforma que no es JSON. FastAPI lo necesita para leer el archivo.
     "python-multipart>=0.0.20",
@@ -30,6 +27,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
+    # Lo usa el TestClient de FastAPI. Es dependencia de pruebas y no de
+    # ejecucion: la plataforma no sale a la red por su cuenta.
+    "httpx>=0.28",
 ]
 
 [build-system]

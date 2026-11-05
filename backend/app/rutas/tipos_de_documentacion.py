@@ -155,7 +155,6 @@ _CODIGOS = {
     reconocimiento.ArchivoDemasiadoGrande: status.HTTP_413_CONTENT_TOO_LARGE,
     reconocimiento.ExtensionNoAdmitida: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
     reconocimiento.ArchivoIlegible: status.HTTP_422_UNPROCESSABLE_CONTENT,
-    reconocimiento.SinEstructuraReconocible: status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 

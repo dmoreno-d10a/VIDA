@@ -277,26 +277,79 @@ def test_un_archivo_danado_se_rechaza_con_su_propio_mensaje(
     assert _estado_de(cliente, tipo_id) == "incompleto"
 
 
-def test_un_word_sin_estructura_y_sin_respaldo_se_rechaza_con_422(
-    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba, monkeypatch
+def test_un_word_sin_estructura_se_acepta_igual(
+    cliente: TestClient, usuarios, almacen_temporal, formatos_de_prueba
 ) -> None:
-    """Con el respaldo apagado, un formato sin estilos se rechaza (RF-10)."""
-    from app.configuracion import obtener_configuracion
+    """Un formato nunca se rechaza por su estructura (RF-10).
 
-    monkeypatch.setenv("VIDA_IA_RESPALDO", "0")
-    obtener_configuracion.cache_clear()
-
+    `solo-negritas.docx` marca sus secciones con negrita, que es algo que una
+    persona reconoce y `python-docx` no. El archivo se acepta, el tipo queda
+    activo y la estructura queda vacía: el formato es la referencia con la que
+    después se llena el documento, y el archivo original se guarda intacto.
+    """
     _entrar(cliente, fic.ADMINISTRADOR)
     tipo_id = _crear_tipo(cliente, "Solo negritas")
 
     respuesta = _cargar(cliente, tipo_id, formatos_de_prueba["solo_negritas"])
 
-    assert respuesta.status_code == 422
-    assert "no se reconoció ninguna estructura" in respuesta.json()["detalle"].lower()
-    # El mensaje dice qué se esperaba, porque es el error que el Administrador
-    # puede corregir solo.
-    assert "estilo de título" in respuesta.json()["detalle"]
-    assert _estado_de(cliente, tipo_id) == "incompleto"
+    assert respuesta.status_code == 201
+    assert respuesta.json()["estructura"] == {"clase": "word", "secciones": []}
+    assert _estado_de(cliente, tipo_id) == "activo"
+
+
+def test_un_excel_sin_un_solo_encabezado_se_acepta_igual(
+    cliente: TestClient, usuarios, almacen_temporal
+) -> None:
+    """La misma regla en la rama de Excel."""
+    from io import BytesIO
+
+    from openpyxl import Workbook
+
+    libro = Workbook()
+    libro.active.title = "Vacía"
+    memoria = BytesIO()
+    libro.save(memoria)
+
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Excel sin encabezados")
+
+    respuesta = _cargar_bytes(
+        cliente, tipo_id, memoria.getvalue(), "sin-encabezados.xlsx"
+    )
+
+    assert respuesta.status_code == 201
+    assert respuesta.json()["estructura"]["hojas"][0]["columnas"] == []
+    assert _estado_de(cliente, tipo_id) == "activo"
+
+
+def test_el_archivo_se_guarda_intacto_aunque_no_se_reconozca_nada(
+    cliente: TestClient, usuarios, sesion_bd, almacen_temporal, formatos_de_prueba
+) -> None:
+    """Lo que de verdad importa: el original queda byte por byte.
+
+    Es lo que permite que la IA lo llene después sin cambiarle el estilo, y
+    no depende de que la lectura haya reconocido algo.
+    """
+    import hashlib
+
+    from sqlalchemy import select
+
+    from app.formatos import almacen
+    from app.modelos.tipo_documentacion import FormatoVersion
+
+    original = formatos_de_prueba["solo_negritas"].read_bytes()
+
+    _entrar(cliente, fic.ADMINISTRADOR)
+    tipo_id = _crear_tipo(cliente, "Intacto")
+    assert _cargar(
+        cliente, tipo_id, formatos_de_prueba["solo_negritas"]
+    ).status_code == 201
+
+    version = sesion_bd.scalar(
+        select(FormatoVersion).where(FormatoVersion.tipo_id == tipo_id)
+    )
+    assert almacen.leer(version.ruta_almacenada) == original
+    assert version.hash_sha256 == hashlib.sha256(original).hexdigest()
 
 
 def test_cargar_a_un_tipo_que_no_existe_responde_404(

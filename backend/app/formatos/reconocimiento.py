@@ -1,25 +1,37 @@
-"""Puerta única del reconocimiento de un formato.
+"""Puerta única de la carga de un formato.
 
-Todo archivo que carga el Administrador pasa por aquí, y por aquí en este
-orden: tamaño, extensión, firma, lectura, y solo entonces el respaldo con IA.
+Todo archivo que carga el Administrador pasa por aquí: tamaño, extensión,
+firma, y una lectura de la estructura que es **una pista y no un juez**.
+
+**Un formato nunca se rechaza por su estructura.** Si la lectura no reconoce
+secciones ni columnas, el archivo se acepta igual y la estructura queda vacía.
+El formato es la referencia con la que después se llena el documento, y la IA
+que lo llena trabaja sobre el archivo original, que se guarda intacto: decidir
+al cargarlo que un archivo «no sirve» porque no marcó sus títulos como Word
+espera es adelantarse a un problema que no es de quien carga.
+
+Lo que sí se rechaza es lo que no es un formato: un archivo sobre el límite,
+una extensión que no se admite, un `.doc` viejo renombrado a `.docx`, y uno
+que no se puede abrir. Ese último se rechaza aquí a propósito, aunque no sea
+un juicio sobre la estructura: un archivo dañado o protegido con contraseña no
+lo va a poder llenar nadie, y descubrirlo al cargarlo es mucho más amable que
+descubrirlo cuando un RO ya documentó una actividad.
 
 **Las tres barreras van antes de abrir nada**, y en ese orden a propósito:
 rechazar por tamaño es una comparación de enteros, rechazar por extensión es
 una comparación de cadenas, y comprobar la firma son cuatro bytes. Abrir el
-archivo es lo caro, así que es lo último. Un `.doc` renombrado a `.docx` lo
-atrapa la firma, no la extensión.
+archivo es lo caro, así que es lo último.
 
-El respaldo con IA corre **solo** cuando el archivo se abrió bien y la lectura
-no reconoció nada (RF-05c). Un archivo que no se pudo abrir no llega al
-respaldo: no tiene texto que mandar, y además su error es distinto para el
-Administrador.
+La lectura ocurre **una sola vez, al cargar** (Art. VI). Lo que se reconozca
+se guarda con la versión, y ni el detalle del tipo ni las funcionalidades
+posteriores vuelven a abrir el archivo para saber qué hay dentro.
 """
 
 import logging
 from dataclasses import dataclass
 
 from app.configuracion import obtener_configuracion
-from app.formatos import lector_excel, lector_word, propuesta_ia, texto_para_ia
+from app.formatos import lector_excel, lector_word
 
 registro = logging.getLogger(__name__)
 
@@ -42,25 +54,26 @@ class ExtensionNoAdmitida(ErrorDeFormato):
 
 
 class ArchivoIlegible(ErrorDeFormato):
-    """Dañado, protegido o no se pudo abrir → `422` con su mensaje (RF-10)."""
+    """Dañado, protegido o no se pudo abrir → `422` (RF-10).
 
-
-class SinEstructuraReconocible(ErrorDeFormato):
-    """Ni la lectura ni la IA reconocieron nada → `422` con su mensaje (RF-10).
-
-    Es el mismo error cuando el respaldo está apagado, cuando no respondió y
-    cuando su propuesta quedó vacía: para el Administrador las tres son lo
-    mismo, y nombrarle una falla de un servicio interno no le da nada con lo
-    que actuar.
+    Es el **único** rechazo que ocurre después de abrir el archivo, y no es un
+    juicio sobre su estructura: es que no hay archivo con el que trabajar.
     """
 
 
 @dataclass(frozen=True)
 class FormatoReconocido:
-    """Lo que la puerta devuelve cuando el archivo sirve."""
+    """Lo que la puerta devuelve. Siempre, si el archivo se pudo abrir."""
 
     extension: str
+
     estructura: dict
+    """Lo que se reconoció, que **puede estar vacío**.
+
+    Vacío no es un error: es «este formato no marca sus secciones de una forma
+    que se pueda leer sin interpretar», y la estructura es una pista para que
+    la 004 sepa por dónde empezar a preguntar, no la definición del documento.
+    """
 
 
 _LECTORES = {"docx": lector_word, "xlsx": lector_excel}
@@ -73,7 +86,7 @@ def extension_de(nombre_archivo: str) -> str:
 
 
 def reconocer(contenido: bytes, nombre_archivo: str) -> FormatoReconocido:
-    """Valida el archivo y devuelve su estructura, o levanta un `ErrorDeFormato`."""
+    """Valida el archivo y lee lo que se pueda, o levanta un `ErrorDeFormato`."""
     configuracion = obtener_configuracion()
 
     # --- Barrera 1: tamaño (RF-18) ---
@@ -104,7 +117,7 @@ def reconocer(contenido: bytes, nombre_archivo: str) -> FormatoReconocido:
         )
         raise ExtensionNoAdmitida(_mensaje_de_extension(configuracion))
 
-    # --- Lectura directa, que tiene prioridad ---
+    # --- La lectura, que informa pero no decide ---
     try:
         estructura = lector.leer(contenido)
     except lector.ErrorDeLectura as error:
@@ -113,25 +126,17 @@ def reconocer(contenido: bytes, nombre_archivo: str) -> FormatoReconocido:
             "contraseña."
         ) from error
 
-    if not lector.sin_estructura(estructura):
-        return FormatoReconocido(extension=extension, estructura=estructura)
-
-    # --- Respaldo con IA (RF-05c), solo si la lectura no reconoció nada ---
-    registro.info(
-        "La lectura directa no reconoció estructura en un %s; se intenta el respaldo.",
-        extension,
-    )
-    esqueleto = texto_para_ia.extraer(contenido, extension)
-    propuesta = propuesta_ia.proponer(esqueleto)
-
-    if propuesta is None:
-        raise SinEstructuraReconocible(
-            "No se reconoció ninguna estructura en el archivo. Revisa que el "
-            "formato tenga secciones con estilo de título, o encabezados de "
-            "columna."
+    if lector.sin_estructura(estructura):
+        # Se registra porque es útil saber cuántos formatos del área caen aquí
+        # —de eso depende cuánto trabajo tendrá la 004—, pero no cambia nada:
+        # el formato se acepta.
+        registro.info(
+            "No se reconoció estructura en un %s; se acepta igual y la "
+            "estructura queda vacía.",
+            extension,
         )
 
-    return FormatoReconocido(extension=extension, estructura=propuesta)
+    return FormatoReconocido(extension=extension, estructura=estructura)
 
 
 def _mensaje_de_extension(configuracion) -> str:

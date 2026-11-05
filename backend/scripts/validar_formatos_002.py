@@ -1,4 +1,4 @@
-"""Validación de la funcionalidad 002 (tareas T033 a T038a).
+"""Validación de la funcionalidad 002 (tareas T033 a T038).
 
     python -m scripts.validar_formatos_002
 
@@ -7,11 +7,9 @@ que vaya en el Pull Request sea una medición y no una afirmación. No toca la
 base de datos: trabaja contra el reconocimiento directamente, que es donde
 viven las reglas que se están validando.
 
-Lo que **no** puede hacer este guion es la segunda mitad de T035: medir la
-carga con el respaldo con IA contra VORKAN de verdad. Hace falta una
-credencial, y una credencial no entra al repositorio (Art. X.2). Esa medición
-la hace quien tenga el entorno, y el guion lo dice en su salida en vez de
-dejar el hueco callado.
+Lo que mide es el análisis en el servidor. La medición punta a punta que pide
+CE-09 —con la subida del archivo por la red incluida— necesita el entorno
+completo, y la hace quien lo tenga.
 """
 
 import sys
@@ -22,7 +20,7 @@ from tempfile import mkdtemp
 from openpyxl import Workbook
 
 from app.configuracion import obtener_configuracion
-from app.formatos import propuesta_ia, reconocimiento
+from app.formatos import reconocimiento
 from scripts.generar_formatos_de_prueba import (
     ESTRUCTURA_EXCEL,
     ESTRUCTURA_GENERALIZACION,
@@ -105,13 +103,6 @@ def main() -> int:
     formatos = generar_todos(carpeta)
     configuracion = obtener_configuracion()
 
-    # El respaldo se sustituye por un contador: este guion no sale a la red, y
-    # lo que mide es cuántas veces *habría* salido.
-    llamadas: list[str] = []
-    propuesta_ia.consultar_litellm = lambda mensaje: (  # type: ignore[assignment]
-        llamadas.append(mensaje) or "{}"
-    )
-
     print("\nT033 — Caso de referencia (CE-01)")
     reconocido = reconocimiento.reconocer(
         formatos["referencia"].read_bytes(), formatos["referencia"].name
@@ -155,11 +146,14 @@ def main() -> int:
         == 3,
     )
 
-    print("\nT038a — La lectura directa tiene prioridad (Art. VI)")
+    print("\nRF-10 — Un formato sin estructura reconocible se acepta igual")
+    negritas = reconocimiento.reconocer(
+        formatos["solo_negritas"].read_bytes(), formatos["solo_negritas"].name
+    )
     comprobar(
-        "los tres formatos bien marcados no costaron ni una llamada a LiteLLM",
-        len(llamadas) == 0,
-        f"{len(llamadas)} llamadas",
+        "el Word que marca sus secciones con negrita no se rechaza",
+        negritas.estructura == {"clase": "word", "secciones": []},
+        "aceptado, con la estructura vacía",
     )
 
     print("\nT035 — Carga de un archivo grande contra el techo de 30 s (CE-09)")
@@ -175,10 +169,8 @@ def main() -> int:
         f"{len(grande_reconocido.estructura['hojas'])} hojas",
     )
     print(
-        "    OJO: esto mide el análisis en el servidor, no punta a punta. Lo que\n"
-        "    falta —la subida por la red y el caso con el respaldo con IA contra\n"
-        "    VORKAN— se mide con el entorno completo: ver el encabezado de este\n"
-        "    guion."
+        "    OJO: esto mide el análisis en el servidor. Lo que falta para CE-09\n"
+        "    —la subida del archivo por la red— se mide con el entorno completo."
     )
 
     print("\nT036 — Cero datos inventados y todo rastreable (Art. II, Art. IX)")
@@ -201,7 +193,7 @@ def main() -> int:
             f"{len(inventados)} inventados" if inventados else "",
         )
 
-    print("\nT038 — El límite y el modelo son configuración (RF-18, CE-08, Art. V)")
+    print("\nT038 — El límite y las extensiones son configuración (RF-18, CE-08)")
     comprobar(
         "el techo de tamaño sale de la configuración",
         configuracion.formato_tamano_max_bytes
@@ -212,16 +204,6 @@ def main() -> int:
         "las extensiones admitidas salen de la configuración",
         configuracion.extensiones_admitidas == ("docx", "xlsx"),
         str(configuracion.extensiones_admitidas),
-    )
-    comprobar(
-        "la tarea del modelo sale de la configuración y no del código",
-        bool(configuracion.modelo_reconocimiento),
-        configuracion.modelo_reconocimiento,
-    )
-    comprobar(
-        "sin credencial el respaldo queda indisponible y la plataforma arranca",
-        configuracion.respaldo_ia_disponible == bool(configuracion.litellm_api_key),
-        "disponible" if configuracion.respaldo_ia_disponible else "indisponible",
     )
 
     fallas = [etiqueta for etiqueta, ok, _ in resultados if not ok]

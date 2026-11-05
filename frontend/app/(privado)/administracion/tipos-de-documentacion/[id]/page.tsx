@@ -66,8 +66,38 @@ function fecha(iso: string): string {
   return new Date(iso).toLocaleString("es-CO");
 }
 
+/** Si de este formato se reconoció algo. Vacío es válido, no un error. */
+function tieneEstructura(estructura: Estructura): boolean {
+  return estructura.clase === "word"
+    ? estructura.secciones.length > 0
+    : estructura.hojas.some((hoja) => hoja.columnas.length > 0);
+}
+
+/**
+ * Lo que se muestra cuando la lectura no reconoció nada.
+ *
+ * No es un error y no se presenta como uno: el formato se aceptó y el archivo
+ * está guardado. Lo que falta es la lista de secciones, y eso solo significa
+ * que este formato no las marca de una forma que se pueda leer sin
+ * interpretar.
+ */
+function SinEstructura() {
+  return (
+    <p className="aviso">
+      De este archivo no se reconocieron secciones ni columnas, y eso no
+      impide usarlo: el formato quedó guardado tal como lo subiste y es la
+      referencia con la que se llenará el documento. Si quieres que la
+      plataforma reconozca sus secciones, márcalas en Word con estilos de
+      título y vuelve a cargarlo.
+    </p>
+  );
+}
+
 /** Las secciones de un Word, sangradas por nivel para poder comparar. */
 function EstructuraWord({ secciones }: { secciones: Seccion[] }) {
+  if (secciones.length === 0) {
+    return <SinEstructura />;
+  }
   return (
     <ol className="secciones">
       {secciones.map((seccion, posicion) => (
@@ -91,6 +121,9 @@ function EstructuraWord({ secciones }: { secciones: Seccion[] }) {
 
 /** Las hojas de un Excel, con la fila de la que salieron los encabezados. */
 function EstructuraExcel({ hojas }: { hojas: Hoja[] }) {
+  if (!hojas.some((hoja) => hoja.columnas.length > 0)) {
+    return <SinEstructura />;
+  }
   return (
     <ul className="hojas">
       {hojas.map((hoja) => (
@@ -276,11 +309,13 @@ export default function DetalleDeTipo() {
             {detalle.version_vigente.nombre_archivo_original} ·{" "}
             {fecha(detalle.version_vigente.creado_en)}
           </p>
-          <p>
-            Compárala con tu archivo abierto al lado. Si algo no corresponde,
-            corrige el archivo y vuelve a cargarlo: la estructura no se edita
-            aquí.
-          </p>
+          {tieneEstructura(detalle.version_vigente.estructura) ? (
+            <p>
+              Compárala con tu archivo abierto al lado. Si algo no corresponde,
+              corrige el archivo y vuelve a cargarlo: la estructura no se edita
+              aquí.
+            </p>
+          ) : null}
           {detalle.version_vigente.estructura.clase === "word" ? (
             <EstructuraWord
               secciones={detalle.version_vigente.estructura.secciones}
