@@ -20,6 +20,8 @@ from sqlalchemy.orm import Session
 from app.bd import obtener_sesion_bd
 from app.configuracion import obtener_configuracion
 from app.esquemas.tipos_de_documentacion import (
+    CambioDeActivacion,
+    CambioDeTipo,
     DetalleDeTipo,
     NuevoTipo,
     TipoEnListado,
@@ -305,3 +307,98 @@ def version_anterior(tipo_id: int, numero: int, sesion_bd: BD) -> FormatoVersion
             detail="No existe esa versión del formato.",
         )
     return version
+
+
+# --- RF-12, RF-14, RF-15: mantener los tipos -------------------------------
+
+NO_SE_PUEDE_ACTIVAR = (
+    "Este tipo no tiene un formato cargado, así que no puede activarse."
+)
+
+# El mensaje **ofrece la alternativa** en la misma frase, como pide RF-15: al
+# Administrador no le sirve saber solo que no puede, sino qué sí puede hacer.
+NO_SE_PUEDE_ELIMINAR = (
+    "Este tipo ya tiene un formato cargado y no se puede eliminar. Puedes "
+    "desactivarlo para que los RO no lo vean."
+)
+
+
+@enrutador.patch("/{tipo_id}", response_model=TipoEnListado)
+def modificar(
+    tipo_id: int, cambio: CambioDeTipo, sesion_bd: BD
+) -> TipoDocumentacion:
+    """Cambia nombre y descripción (RF-12).
+
+    **No toca la estructura reconocida.** Corregir el nombre de un tipo no
+    tiene por qué volver a analizar su formato, y el formato no cambió.
+
+    Los dos campos son opcionales: se cambia lo que venga. Un campo ausente y
+    un campo en `null` significan distinto para la descripción —no cambiarla,
+    o dejarla sin descripción— y `model_fields_set` es lo que los distingue.
+    """
+    tipo = _buscar(sesion_bd, tipo_id)
+    enviados = cambio.model_fields_set
+
+    if "nombre" in enviados and cambio.nombre is not None:
+        if _existe_otro_con_el_nombre(sesion_bd, cambio.nombre, excepto_id=tipo_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=NOMBRE_REPETIDO
+            )
+        tipo.nombre = cambio.nombre
+
+    if "descripcion" in enviados:
+        tipo.descripcion = (
+            cambio.descripcion
+            if cambio.descripcion is None or cambio.descripcion.strip()
+            else None
+        )
+
+    sesion_bd.commit()
+    sesion_bd.refresh(tipo)
+    return tipo
+
+
+@enrutador.post("/{tipo_id}/activacion", response_model=TipoEnListado)
+def cambiar_activacion(
+    tipo_id: int, cambio: CambioDeActivacion, sesion_bd: BD
+) -> TipoDocumentacion:
+    """Desactiva un tipo o lo devuelve a circulación (RF-14).
+
+    Es una ruta propia y no parte del `PATCH` porque es una decisión distinta:
+    corregir la descripción de un tipo y sacarlo de circulación no se piden en
+    el mismo gesto, y separarlas evita desactivar un tipo por accidente al
+    renombrarlo.
+    """
+    tipo = _buscar(sesion_bd, tipo_id)
+
+    if not cambio.desactivado and tipo.version_vigente_id is None:
+        # Activar un tipo sin formato dejaría al RO elegir algo que no se
+        # puede usar. El estado «activo» no es escribible: se deriva de tener
+        # una versión vigente.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=NO_SE_PUEDE_ACTIVAR
+        )
+
+    tipo.desactivado = cambio.desactivado
+    sesion_bd.commit()
+    sesion_bd.refresh(tipo)
+    return tipo
+
+
+@enrutador.delete("/{tipo_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar(tipo_id: int, sesion_bd: BD) -> None:
+    """Elimina un tipo que nunca llegó a usarse (RF-15, RF-15a).
+
+    Solo procede sin versión vigente, que es la lectura literal de «tipos que
+    nunca han sido usados»: un tipo sin formato vigente nunca pudo ser elegido
+    por un RO.
+    """
+    tipo = _buscar(sesion_bd, tipo_id)
+
+    if tipo.version_vigente_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=NO_SE_PUEDE_ELIMINAR
+        )
+
+    sesion_bd.delete(tipo)
+    sesion_bd.commit()
