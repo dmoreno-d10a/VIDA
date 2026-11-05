@@ -22,9 +22,10 @@ Los cuatro casos:
 - `generalizacion-excel.xlsx` — tres hojas, una con los encabezados en la fila
   3 y dos columnas con el mismo nombre.
 - `solo-negritas.docx` — secciones marcadas con negrita y sin un solo estilo de
-  título. Para la lectura determinista es un archivo sin estructura, y es el
-  único caso que ejercita el respaldo con IA (RF-05c): sin él no hay forma de
-  probarlo.
+  título. Para la lectura es un archivo sin estructura, y es el caso que
+  comprueba que un formato así **se acepte igual**, con la estructura vacía
+  (RF-05c, RF-10): sin él no hay forma de probar la regla que más fácil se
+  implementa al revés.
 """
 
 import tempfile
@@ -112,14 +113,9 @@ SOLO_NEGRITAS_SECCIONES = [
     "Validaciones",
 ]
 
-# La lectura determinista no reconoce nada aquí, y eso es el punto del caso.
+# La lectura no reconoce nada aquí, y eso es el punto del caso: el formato
+# tiene que aceptarse igual, con la estructura vacía (RF-05c, RF-10).
 ESTRUCTURA_SOLO_NEGRITAS_LEIDA = {"clase": "word", "secciones": []}
-
-# Lo que una propuesta de la IA tendría que nombrar. No es «la respuesta
-# correcta» del modelo —no se le exige una lista idéntica—, sino el conjunto
-# del que todo nombre propuesto debe salir: cada uno aparece literalmente en el
-# documento, que es lo que RF-05d verifica.
-NOMBRES_LITERALES_SOLO_NEGRITAS = list(SOLO_NEGRITAS_SECCIONES)
 
 
 def _parrafo_de_relleno(documento: Document, texto: str) -> None:

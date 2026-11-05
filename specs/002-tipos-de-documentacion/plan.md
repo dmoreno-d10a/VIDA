@@ -26,12 +26,10 @@ con prioridades distintas. El principal es **determinista**: la estructura de un
 con `python-docx` y la de un `.xlsx` con `openpyxl`, recorriendo párrafos y hojas. Lo que sale de
 ahí está en el archivo o no sale, y por eso manda.
 
-El segundo es el **respaldo con IA** (RF-05c), para el formato que un lector no puede reconocer
-porque marca sus secciones con negrita o con tamaño de letra en vez de estilos de título. Solo
-corre cuando la lectura directa no reconoció **nada**, y lleva dos cercos: se le manda el texto
-extraído y nunca el archivo (Art. VI), y se descarta todo nombre que no aparezca literalmente en
-el documento (RF-05d). Esto hace que la 002 **sí llegue a LiteLLM y VORKAN**, por una sola puerta
-y apagable por configuración (decisiones 1 y 11 de `research.md`).
+Y es el único. **La lectura no decide si el formato sirve:** si no reconoce nada —porque el
+archivo marca sus secciones con negrita o con tamaño de letra en vez de estilos de título—, el
+formato **se acepta igual** y la estructura queda vacía (RF-05c, RF-10). La 002 **no habla con
+LiteLLM ni con VORKAN por ningún camino** (decisiones 1 y 11 de `research.md`).
 
 **Para qué sirve la estructura reconocida, dicho sin rodeos:** es la lista de **qué hay que
 llenar**, que es lo que la 004 necesita para saber qué preguntarle al RO. El documento final no
@@ -51,29 +49,29 @@ el Art. IX.
 | Aspecto | Decisión | Incógnitas |
 |---|---|---|
 | Lenguaje y versión | Python ≥ 3.12 (backend), TypeScript con Next.js (front), tal como la 001 | — |
-| Dependencias nuevas | `python-docx>=1.1`, `openpyxl>=3.1` y `httpx>=0.28` —que ya estaba como dependencia de pruebas— para hablar con LiteLLM por HTTP. No entra `pandas`, ni `markitdown`, ni un SDK de proveedor | — |
+| Dependencias nuevas | `python-docx>=1.1`, `openpyxl>=3.1` y `python-multipart>=0.0.20`. No entra `pandas`, ni `markitdown`, ni ningún cliente HTTP de ejecución: `httpx` se queda como dependencia de pruebas | — |
 | Almacenamiento | PostgreSQL para los datos y la estructura reconocida (`JSONB`); sistema de archivos para el archivo original, en carpeta configurable | — |
 | Pruebas | `pytest` en el backend, Playwright en el front. Los cuatro formatos de prueba se generan con datos ficticios | — |
-| Tiempo de respuesta | Techo de **30 s** para la carga completa, medido **punta a punta** y con la consulta a la IA incluida. **Síncrona** en la misma petición, sin procesamiento en segundo plano (aclaraciones del 2026-11-04) | — |
-| Modelos / proveedor | LiteLLM hacia VORKAN, **solo en el paso de respaldo**. Dirección, credencial y nombre de la tarea por variable de entorno: ningún modelo queda escrito en el código (Art. V). Se puede apagar con `VIDA_IA_RESPALDO=0` | — |
+| Tiempo de respuesta | Techo de **30 s** para la carga completa, medido **punta a punta**. **Síncrona** en la misma petición, sin procesamiento en segundo plano (aclaración del 2026-11-04) | — |
+| Modelos / proveedor | **Ninguno.** Esta funcionalidad no consulta ningún modelo: la lectura del formato es local y determinista. El primer punto del módulo que habla con un modelo es la 004 | — |
 
-No quedan incógnitas abiertas: las diez que había se resolvieron en la Fase 0, y la once
-—cómo entra la IA— se resolvió al revisar la decisión 1 el 2026-11-04.
+No quedan incógnitas abiertas: las diez que había se resolvieron en la Fase 0, y la once —qué
+pasa cuando la lectura no reconoce nada— se cerró el 2026-11-05: el formato se acepta igual.
 
 ## 3. Verificación contra la constitución
 
 | Artículo | ¿Cumple? | Cómo |
 |---|---|---|
 | I — El formato definido manda | Sí | Una sección es un párrafo con estilo de título y nada más; los encabezados de una hoja salen de su primera fila con dos o más celdas con contenido (RF-05a, RF-05b). La estructura se lee de forma determinista y se guarda como listas ordenadas en `JSONB`, sin normalizar nada. Las secciones y columnas de nombre repetido se conservan todas; las sin nombre se guardan como `null` sin inventarles uno. La prueba de reconocimiento compara contra la estructura exacta del archivo generado, así que el cumplimiento es verificable y no una opinión |
-| II — Cero información inventada | Sí | La lectura principal no puede inventar: recorre el archivo. El respaldo con IA sí podría, y por eso cada nombre propuesto se busca literalmente en el texto del documento y se descarta si no está (RF-05d). Lo que la estructura decide es qué se le pregunta al RO, no qué dice el documento: el contenido lo pone el RO y el estilo lo pone el archivo original, que se llena en sitio. Un formato del que ni la lectura ni la IA reconocen nada se rechaza (RF-10) |
+| II — Cero información inventada | Sí | La lectura recorre el archivo, así que no tiene de dónde inventar: lo que sale está en el archivo o no sale. Ningún modelo interviene. Cuando no reconoce nada, la estructura queda **vacía**, que es lo honesto: inventar una lista plausible sería exactamente lo que este artículo prohíbe |
 | III — El RO decide | N.A. | Esta funcionalidad no le pide información al RO: solo le ofrece la lista de tipos activos |
 | IV — Separación de capas | Sí | Toda la lectura de archivos, la validación y la autorización están en el backend. El front no tiene credenciales ni decide permisos: oculta opciones por comodidad, y la barrera es la dependencia del enrutador |
-| V — Independencia del modelo | Sí | El respaldo habla con LiteLLM por HTTP, no con un SDK de proveedor. Dirección, credencial y nombre de la tarea son variables de entorno; cambiar de modelo no toca código. El cliente está en un solo archivo, `propuesta_ia.py`, que es el único punto de la 002 que sale a la red |
-| VI — Eficiencia de tokens | Sí | Ningún archivo se envía a un modelo: el respaldo manda el texto de los párrafos con sus señales de forma, o los nombres de las hojas con sus primeras filas, que es el esqueleto y no el contenido. Y solo cuando la lectura directa no reconoció nada: el formato que trae estilos de título no cuesta un token. El formato se analiza **una sola vez** al cargarlo y la estructura se lee después de la base de datos: reabrir el detalle no reprocesa nada (RF-07) |
+| V — Independencia del modelo | N.A. | No hay ningún modelo en esta funcionalidad, ni en el código ni en la configuración. Aplica desde la 004 |
+| VI — Eficiencia de tokens | Sí | **Cero tokens en toda la funcionalidad**: ningún archivo ni fragmento se envía a un modelo, porque no se consulta ninguno. El formato se analiza **una sola vez** al cargarlo, como pide el artículo, y la estructura se lee después de la base de datos: reabrir el detalle no reprocesa nada (RF-07) |
 | VII — Constructor / Evaluador | N.A. | No se genera ningún documento aquí, así que no hay nada que evaluar. Aplica desde la 005 |
 | VIII — Generalización | Sí | Ningún nombre de sección queda escrito en el código: la plataforma reconoce lo que traiga el archivo (RF-17). Se valida con tres formatos, dos de ellos ajenos al caso de referencia, uno Word y uno Excel |
 | IX — Trazabilidad | Sí | El versionado es lo que lo sostiene: cada versión guarda su archivo, su hash y su estructura, y no se edita ni se borra nunca. Las funcionalidades posteriores pueden atar un documento a la versión con la que se produjo (RF-20) |
-| X — Seguridad y datos | Sí | Solo el Administrador administra tipos, por dependencia del enrutador. Los archivos se guardan bajo `uploads/`, ya excluido en `.gitignore`. La credencial de LiteLLM se lee del entorno y no tiene valor por defecto ni aparece en `.env.ejemplo` con contenido (X.2). Los tres formatos de prueba son ficticios y **generados**: el formato real del cliente no entra al repositorio (X.3) |
+| X — Seguridad y datos | Sí | Solo el Administrador administra tipos, por dependencia del enrutador. Los archivos se guardan bajo `uploads/`, ya excluido en `.gitignore`. **No hay ninguna credencial que guardar** (X.2): la funcionalidad no habla con ningún servicio externo. Los cuatro formatos de prueba son ficticios y **generados**: el formato real del cliente no entra al repositorio (X.3) |
 | XI — Spec antes que código | Sí | Este plan sale de una spec aprobada y sin aclaraciones abiertas. No se escribe código antes de `tasks.md` |
 | XII — Idioma | Sí | Código, mensajes de error, pantallas y estos artefactos, en español |
 
@@ -83,9 +81,10 @@ funcionalidad conserva indefinidamente a propósito. No bloquea la implementaci�
 resolverlo antes de que la plataforma acumule formatos de verdad, y se resuelve enmendando la
 constitución, no aquí.
 
-Esta tabla se vuelve a revisar al cerrar la Fase 1. **Revisada el 2026-11-04:** el respaldo con
-IA movió el Art. V de «no aplica» a «sí», y cambió el argumento del Art. II, que ya no se apoya
-en que no haya modelo sino en los tres cercos de la decisión 11. Ninguna otra fila cambió.
+Esta tabla se vuelve a revisar al cerrar la Fase 1. **Revisada dos veces:** el 2026-11-04 el
+respaldo con IA movió el Art. V de «no aplica» a «sí»; el **2026-11-05**, al quitarse el
+respaldo, volvió a «no aplica» y el Art. II volvió a apoyarse en que la lectura no tiene de
+dónde inventar. El Art. VI quedó más holgado que nunca: la funcionalidad no gasta un solo token.
 
 ## 4. Componentes
 
@@ -95,13 +94,11 @@ en que no haya modelo sino en los tres cercos de la decisión 11. Ninguna otra f
 | `backend/app/esquemas/tipos_de_documentacion.py` | Esquemas | Entradas y salidas de la API, con las validaciones de nombre | RF-02, RF-12 |
 | `backend/app/formatos/lector_word.py` | Lógica | Lee las secciones de un `.docx` con su nivel y su orden | RF-05, RF-06, RF-11 |
 | `backend/app/formatos/lector_excel.py` | Lógica | Lee hojas, fila de encabezados y columnas de un `.xlsx` | RF-05, RF-06, RF-11 |
-| `backend/app/formatos/reconocimiento.py` | Lógica | Puerta única: valida tamaño, extensión y firma, elige el lector, y si no reconoce nada llama al respaldo | RF-04, RF-05c, RF-10, RF-18 |
-| `backend/app/formatos/texto_para_ia.py` | Lógica | Extrae el esqueleto que se le manda a la IA: párrafos con sus señales de forma, u hojas con sus primeras filas. Nunca el archivo | Art. VI |
-| `backend/app/formatos/propuesta_ia.py` | Lógica | Único punto que sale a la red: pide la propuesta a LiteLLM y **descarta** todo nombre que no aparezca literalmente en el texto | RF-05c, RF-05d, Art. V |
+| `backend/app/formatos/reconocimiento.py` | Lógica | Puerta única: valida tamaño, extensión y firma, elige el lector, y acepta el formato aunque no reconozca nada | RF-04, RF-05c, RF-10, RF-18 |
 | `backend/app/formatos/almacen.py` | Lógica | Escribe y lee el archivo en la carpeta configurada, calcula el hash y encapsula la ruta | RF-09, RF-20 |
 | `backend/app/rutas/tipos_de_documentacion.py` | Rutas | Administración de tipos y carga de formatos. Exige Administrador en el enrutador | RF-01, RF-12 a RF-15, RF-21 |
 | `backend/app/rutas/tipos_disponibles.py` | Rutas | Lista de tipos activos para los RO. Solo exige sesión | RF-16 |
-| `backend/app/configuracion.py` | Config | Tres parámetros del almacén y la carga, más cuatro del respaldo: interruptor, dirección de LiteLLM, credencial y nombre de la tarea | RF-18, Art. V |
+| `backend/app/configuracion.py` | Config | Tres parámetros del almacén y la carga: carpeta, tamaño máximo y extensiones admitidas | RF-18 |
 | `backend/alembic/versions/*_tipos_de_documentacion.py` | Migración | Las dos tablas y la clave foránea cruzada | RF-02, RF-19 |
 | `backend/scripts/generar_formatos_de_prueba.py` | Script | Genera los cuatro formatos ficticios y la estructura esperada de cada uno | Art. VIII, Art. X.3 |
 | `frontend/app/(privado)/administracion/tipos-de-documentacion/` | Pantallas | Listado y detalle con la estructura y el historial | HU-1 a HU-4 |
@@ -129,19 +126,10 @@ flowchart TD
   E --> F{¿Qué clase es?}
   F -- Word --> G[lector_word: secciones con nivel y orden]
   F -- Excel --> H[lector_excel: hojas, fila de encabezados y columnas]
-  G --> I{¿Se reconoció alguna estructura?}
+  G --> I{¿Se pudo abrir el archivo?}
   H --> I
-  I -- Error al abrir --> R4[422: dañado o protegido]
+  I -- No --> R4[422: dañado o protegido]
   I -- Sí --> J[Transacción: candado del tipo]
-  I -- No --> N{¿Respaldo con IA encendido?}
-  N -- No --> R3[422: dice qué se esperaba encontrar]
-  N -- Sí --> O[texto_para_ia: párrafos u hojas, nunca el archivo]
-  O --> P[LiteLLM propone la estructura]
-  P -- No responde --> R3
-  P --> Q[Descarta todo nombre que no esté literalmente en el texto]
-  Q --> S{¿Quedó algo?}
-  S -- No --> R3
-  S -- Sí --> J
   J --> K[Inserta la versión y apunta el tipo a ella]
   K --> L[201: queda vigente, el tipo pasa a activo]
 
@@ -153,12 +141,12 @@ flowchart TD
 
 En los cuatro rechazos el tipo conserva su versión vigente, o sigue incompleto (RF-10). El
 archivo se escribe **antes** de abrir la transacción, para que dentro de ella no haya entrada ni
-salida de disco —ni, ahora, una llamada a la red—; si la transacción falla, sobra un archivo que
-nadie referencia, que es el lado correcto en el que fallar.
+salida de disco; si la transacción falla, sobra un archivo que nadie referencia, que es el lado
+correcto en el que fallar.
 
-La llamada a la IA queda **fuera de la transacción** por la misma razón, y con más fuerza: una
-transacción abierta mientras se espera una respuesta de la red sostiene el candado del tipo
-durante segundos. Primero se resuelve la propuesta, después se abre la transacción.
+**La lectura del archivo también queda fuera de la transacción**, por la misma razón: abrir un
+`.xlsx` de 25 MB toma segundos, y hacerlo con el candado del tipo tomado bloquearía cualquier
+otra carga sobre ese tipo. Primero se lee, después se abre la transacción.
 
 **El final no se bifurca:** la versión queda vigente venga su estructura de la lectura o de la
 propuesta. La revisión del Administrador ocurre después, en la pantalla de detalle (RF-08), y lo
@@ -171,19 +159,12 @@ que hace si la estructura no corresponde es corregir el archivo y recargarlo.
 | `VIDA_ALMACEN_FORMATOS` | `uploads/formatos` | Variable de entorno, relativa a la raíz del repositorio |
 | `VIDA_FORMATO_MB_MAX` | `25` | Variable de entorno (RF-18) |
 | `VIDA_FORMATO_EXTENSIONES` | `docx,xlsx` | Variable de entorno (RF-18) |
-| `VIDA_IA_RESPALDO` | `1` | Interruptor del respaldo. En `0`, un formato sin estructura se rechaza como en el diseño original |
-| `VIDA_LITELLM_URL` | `http://localhost:4000` | Dirección de LiteLLM hacia VORKAN |
-| `VIDA_LITELLM_API_KEY` | **sin valor** | Credencial. No tiene valor por defecto y en `.env.ejemplo` va vacía (Art. X.2) |
-| `VIDA_MODELO_RECONOCIMIENTO` | `reconocimiento-de-formato` | Nombre de la tarea en LiteLLM, no un modelo concreto (Art. V) |
 
-Todas tienen valor por defecto salvo la credencial, así que un `.env` de la 001 sigue
-funcionando sin tocarlo: lo que pasa sin credencial es que el respaldo no está disponible y la
-carga se comporta como si estuviera apagado. Las siete se agregan a `.env.ejemplo`, que es uno
-de los archivos que todas las ramas tocan.
+Las tres tienen valor por defecto, así que un `.env` de la 001 sigue funcionando sin tocarlo. Se
+agregan a `.env.ejemplo`, que es uno de los archivos que todas las ramas tocan.
 
-**`VIDA_MODELO_RECONOCIMIENTO` nombra una tarea, no un modelo.** Qué modelo atiende esa tarea lo
-resuelve LiteLLM, y elegirlo es de la funcionalidad 007. Escribir aquí el nombre de un modelo
-concreto sería justo lo que el Art. V prohíbe.
+**No hay ninguna credencial.** Esta funcionalidad no habla con ningún servicio externo, así que
+no hay nada que guardar ni que dejar fuera del repositorio por el Art. X.2.
 
 ## 7. Estructura de archivos que se crean o modifican
 
@@ -197,8 +178,6 @@ backend/
 │   │   ├── reconocimiento.py                 # puerta única: valida y despacha
 │   │   ├── lector_word.py
 │   │   ├── lector_excel.py
-│   │   ├── texto_para_ia.py                  # el esqueleto que se le manda, no el archivo
-│   │   ├── propuesta_ia.py                   # LiteLLM y el descarte de lo inventado
 │   │   └── almacen.py                        # archivo en disco, hash y ruta
 │   ├── modelos/
 │   │   ├── __init__.py                       # MODIFICA: importa los modelos nuevos
@@ -215,7 +194,6 @@ backend/
 ├── tests/
 │   ├── test_tipos_de_documentacion.py        # NUEVO
 │   ├── test_reconocimiento_de_formato.py     # NUEVO
-│   ├── test_respaldo_con_ia.py               # NUEVO
 │   └── test_versiones_de_formato.py          # NUEVO
 └── pyproject.toml                            # MODIFICA: python-docx, openpyxl, httpx
 
@@ -236,15 +214,13 @@ frontend/
 - **Caso de referencia:** Word con la estructura del Adapter Reverso y contenido ficticio.
 - **Casos de generalización:** un Word de otra forma (jerarquía distinta, títulos repetidos, uno
   sin nombre) y un Excel (varias hojas, encabezados fuera de la fila 1, columnas repetidas).
-- **Caso del respaldo:** un cuarto Word ficticio que marca sus secciones **con negrita**, sin
-  ningún estilo de título. Es el que ejercita RF-05c de punta a punta.
+- **Caso sin estructura legible:** un cuarto Word ficticio que marca sus secciones **con
+  negrita**, sin ningún estilo de título. Es el que comprueba que un formato así **se acepta**
+  con la estructura vacía (RF-05c), en vez de rechazarse.
 - **Qué se compara:** la estructura reconocida contra la que el script generador sabe que
   escribió —nombres, cantidad, orden y nivel—; los cuatro rechazos con su código y su mensaje; y
   que el tipo quede intacto tras cada rechazo.
-- **Cómo se prueba el respaldo sin llamar a VORKAN:** las pruebas sustituyen el cliente de
-  LiteLLM por uno que devuelve una respuesta fija, y verifican las dos cosas que importan: que un
-  nombre que **no** está en el documento se descarte (RF-05d), y que la lectura directa tenga
-  prioridad cuando el archivo sí trae estilos. Ninguna prueba del repositorio sale a la red.
+- **Ninguna prueba sale a la red**, y no por sustituir un cliente: no hay a quién llamar.
 
 Los tres archivos se **generan**, no se cometen: el formato real de un cliente no puede entrar al
 repositorio (Art. X.3), y generar deja la estructura esperada escrita al lado del código que
@@ -267,10 +243,9 @@ hacia `formato_version` es cruzada —cada tabla referencia a la otra— así qu
 
 | Riesgo / decisión | Impacto | Mitigación |
 |---|---|---|
-| Un Word del área marca sus secciones con negrita o tamaño de letra, no con estilos de título | Era el riesgo que podía invalidar la funcionalidad | **Resuelto por la aclaración del 2026-11-04:** ese es ahora el caso del respaldo con IA (RF-05c), no un rechazo. Sigue valiendo la pena saber qué usa el área (T001), pero ya no para decidir si la funcionalidad sirve, sino para saber **cuál de los dos caminos** va a ser el habitual y cuánto va a costar |
-| La IA propone una estructura plausible que el documento no tiene —los nombres están, pero no eran secciones— | La 004 le preguntaría al RO por una sección que su formato no tiene, o dejaría de preguntarle por una que sí | El descarte de RF-05d quita los nombres que no están en el texto, que es lo verificable mecánicamente. El resto se ve en la pantalla de detalle (RF-08) y, cuando la 004 exista, al abrir una actividad: el síntoma es visible y la corrección es recargar el archivo. Lo que **no** está en riesgo es el documento entregado, porque se escribe dentro del archivo original |
-| El respaldo con IA no responde, responde tarde o VORKAN no está disponible | La carga de un formato sin estilos de título fallaría, y con el techo de 30 s de por medio | El respaldo tiene un tiempo límite propio, menor que el techo de la carga, y al agotarse la carga se rechaza con el mensaje de RF-10: nunca queda a medias. `VIDA_IA_RESPALDO=0` permite operar sin VORKAN, con el comportamiento del diseño original |
+| Un Word del área marca sus secciones con negrita o tamaño de letra, no con estilos de título | Era el riesgo que podía invalidar la funcionalidad | **Resuelto el 2026-11-05, y de la forma más simple:** ese formato **se acepta igual**, con la estructura vacía. Ya no decide si la funcionalidad sirve. Sigue valiendo la pena saber qué usa el área (T001), pero ahora solo para saber **cuánto trabajo le va a quedar a la 004** |
+| Muchos formatos del área quedan con la estructura vacía, y el trabajo se corre a la 004 | Aceptar todo le quita el problema al Administrador pero **no lo resuelve**: reaparece cuando un RO abra una actividad y la 004 no sepa qué preguntarle | Es el riesgo que queda vivo, y es consciente. T001 lo mide antes de que la 004 se especifique: abrir un formato real del área dice si esto pasa con uno de cada diez o con nueve de cada diez. Los ítems CHK039 y CHK043 de la checklist lo ponen por escrito para quien revise |
 | La base y el disco se desincronizan: la versión existe y el archivo no | La 006 no podría generar el documento de ese tipo | El hash permite detectarlo. La ruta está encapsulada en `almacen.py`, así que pasar a `BYTEA` más adelante es un cambio local (decisión 6 de `research.md`) |
 | Versiones que se acumulan sin límite | Crecimiento del disco con archivos que nadie consulta | Es deliberado: el Art. IX lo exige. La limpieza depende del pendiente X.4 de la constitución |
-| Un `.xlsx` de 25 MB con muchas hojas, o un `.docx` grande que además necesite el respaldo, se acerca al techo de 30 s | La carga se sentiría lenta, y pasar de 30 s incumpliría un criterio medible | `openpyxl` en modo solo lectura y el análisis una sola vez acotan el costo. La aclaración del 2026-11-04 cerró la arquitectura: **síncrona siempre**, sin proceso en segundo plano. Una tarea de la fase de validación mide el caso de 25 MB contra el techo, de modo que si no alcanza se sepa antes de cerrar la funcionalidad y no en producción |
+| Un `.xlsx` de 25 MB con muchas hojas se acerca al techo de 30 s | La carga se sentiría lenta, y pasar de 30 s incumpliría un criterio medible | `openpyxl` en modo solo lectura y el análisis una sola vez acotan el costo. La aclaración del 2026-11-04 cerró la arquitectura: **síncrona siempre**, sin proceso en segundo plano. Una tarea de la fase de validación mide el caso de 25 MB contra el techo, de modo que si no alcanza se sepa antes de cerrar la funcionalidad y no en producción |
 | `pedirApi` hoy serializa a JSON siempre | La carga del archivo no funcionaría | Se extiende para aceptar `FormData` y, en ese caso, no fijar `Content-Type`: el navegador debe poner el suyo con el delimitador. Es aditivo y no altera las llamadas existentes |

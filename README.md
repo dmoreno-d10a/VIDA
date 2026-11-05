@@ -115,36 +115,39 @@ documentación** registras las clases de documento que la plataforma sabe
 generar y les cargas su formato.
 
 Un tipo nace **sin formato** y ningún RO lo ve. Al cargarle un `.docx` o un
-`.xlsx`, la plataforma reconoce su estructura —las secciones con estilo de
-título, o las hojas con sus columnas— y el tipo pasa a **activo**. La
-estructura se muestra en el detalle del tipo para que la compares con tu
-archivo; si no corresponde, corriges el archivo y lo vuelves a cargar, que
-crea una versión nueva sin perder las anteriores.
+`.xlsx`, el archivo se guarda **intacto** y el tipo pasa a **activo**. De paso,
+la plataforma lee lo que pueda de su estructura —las secciones con estilo de
+título, o las hojas con sus columnas— y la muestra en el detalle del tipo.
 
-### Variables de los formatos y del respaldo con IA
+**Esa lectura no decide si el formato sirve.** Si el archivo marca sus
+secciones con negrita en vez de estilos de título, no se reconoce nada y el
+formato **se acepta igual**: es la referencia con la que después se llena el
+documento, y el documento se escribe dentro del archivo original, así que su
+estilo se conserva sin que haya que hacer nada para protegerlo. Lo único que se
+rechaza es lo que no es un formato: otra extensión, un archivo sobre el límite
+o uno que no se puede abrir.
 
-Las siete tienen valor por defecto salvo la credencial, así que un `.env` de la
-001 sigue funcionando sin tocarlo. Están todas en `.env.ejemplo`:
+Recargar el formato crea una versión nueva sin perder las anteriores.
+
+### Variables de los formatos
+
+Las tres tienen valor por defecto, así que un `.env` de la 001 sigue
+funcionando sin tocarlo. Están en `.env.ejemplo`:
 
 | Variable | Para qué | Por defecto |
 |---|---|---|
 | `VIDA_ALMACEN_FORMATOS` | Dónde se guardan los archivos cargados | `uploads/formatos` |
 | `VIDA_FORMATO_MB_MAX` | Tamaño máximo de un formato | `25` |
 | `VIDA_FORMATO_EXTENSIONES` | Extensiones admitidas | `docx,xlsx` |
-| `VIDA_IA_RESPALDO` | Si la IA propone la estructura cuando la lectura no reconoce nada | `1` |
-| `VIDA_LITELLM_URL` | Por dónde se llega a VORKAN | `http://localhost:4000` |
-| `VIDA_LITELLM_API_KEY` | Credencial de LiteLLM. **Sin valor por defecto** | — |
-| `VIDA_MODELO_RECONOCIMIENTO` | Nombre de la **tarea** en LiteLLM, no de un modelo | `reconocimiento-de-formato` |
 
-Sin credencial el respaldo queda indisponible: la plataforma arranca igual, y
-un formato del que no se reconoce nada se rechaza diciendo qué se esperaba
-encontrar. Qué modelo atiende la tarea se configura en LiteLLM, no aquí
-(Art. V); elegirlo es de la funcionalidad 007.
+**No hay credenciales que configurar.** Esta funcionalidad no habla con LiteLLM
+ni con VORKAN: la lectura del formato es local. El primer módulo que consulta un
+modelo es la funcionalidad 004.
 
 ### Pruebas
 
 ```bash
-cd backend  && .venv/Scripts/python -m pytest          # 160 pruebas
+cd backend  && .venv/Scripts/python -m pytest          # 150 pruebas
 cd frontend && npx playwright install chromium         # una sola vez
 cd frontend && npx playwright test                     # visibilidad y tipos
 ```

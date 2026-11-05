@@ -109,8 +109,8 @@ archivo (RF-08):
 `multipart/form-data` con un campo `archivo`. Es la ruta donde vive casi toda la funcionalidad.
 
 `201` con la versión creada: `numero`, metadatos y `estructura` completa. La respuesta es la
-misma venga la estructura de la lectura del archivo o de la propuesta de la IA, y en los dos
-casos la versión **queda vigente**: el tipo pasa a activo.
+misma esté la `estructura` llena o vacía, y en los dos casos la versión **queda vigente**: el
+tipo pasa a activo.
 
 | Código | Cuándo | `detalle` | RF |
 |---|---|---|---|
@@ -118,7 +118,6 @@ casos la versión **queda vigente**: el tipo pasa a activo.
 | `404` | El tipo no existe | `No existe ese tipo de documentación.` | — |
 | `413` | Supera el tamaño máximo | `El archivo supera el tamaño máximo permitido (25 MB).` | RF-18 |
 | `415` | Extensión no admitida, o la firma no corresponde a un archivo de Office actual | `Solo se admiten formatos de Word (.docx) y Excel (.xlsx).` | RF-04 |
-| `422` | Ni la lectura ni la IA reconocieron nada, o el respaldo está apagado o no respondió | `No se reconoció ninguna estructura en el archivo. Revisa que el formato tenga secciones con estilo de título, o encabezados de columna.` | RF-05c, RF-10 |
 | `422` | Dañado, protegido con contraseña o ilegible | `No se pudo leer el archivo. Puede estar dañado o protegido con contraseña.` | RF-10 |
 | `409` | Otra carga sobre el mismo tipo está en curso | `Hay otra carga de formato en curso para este tipo. Intenta de nuevo en un momento.` | sección 7 |
 
@@ -129,10 +128,10 @@ El mensaje del `415` nombra las extensiones admitidas, como pide RF-04. El del `
 estructura dice qué se esperaba encontrar, porque es el error que el Administrador puede corregir
 por sí mismo.
 
-**El `422` no distingue si el respaldo con IA estaba apagado, no respondió o no reconoció nada.**
-Para el Administrador las tres son lo mismo —el formato no se pudo reconocer y tiene que
-corregirlo— y nombrarle una falla de un servicio interno no le da nada con lo que actuar. La
-diferencia queda en el registro del servidor, que es donde sirve.
+**No hay un `422` por «no se reconoció estructura».** Un formato que se pudo abrir se acepta
+siempre, y la `estructura` viene vacía si no se reconoció nada (RF-05c, RF-10). El único `422`
+es el del archivo que no se pudo abrir, y ese no es un juicio sobre su contenido: es que no hay
+archivo con el que trabajar.
 
 **No hay ruta para corregir una estructura reconocida.** Si no corresponde al archivo, el
 Administrador corrige el archivo y lo vuelve a cargar, que produce una versión nueva. Editarla

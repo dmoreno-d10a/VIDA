@@ -99,10 +99,10 @@ comparación.
 guardada en la base rompe el sistema en cuanto se mueve el almacén, se despliega en otra máquina
 o se trabaja en un worktree con otra configuración.
 
-**La versión que se inserta queda vigente de inmediato**, venga su estructura de la lectura del
-archivo o de la propuesta de la IA. La tabla no distingue las dos: la estructura es la lista de
-qué hay que llenar, y una lista incompleta se corrige recargando el archivo, no con un estado
-intermedio en la base de datos.
+**La versión que se inserta queda vigente de inmediato**, y la estructura **puede estar vacía**.
+Vacía no es un estado degradado: es un formato que no marca sus secciones de una forma que se
+pueda leer sin interpretar. La estructura es la lista de qué hay que llenar, y una lista
+incompleta se corrige recargando el archivo, no con un estado intermedio en la base de datos.
 
 **Las versiones no se borran ni se editan.** Solo se insertan. Es lo que sostiene el Art. IX:
 una versión es el registro de qué estructura estaba vigente en un momento, y reescribirla
@@ -162,25 +162,20 @@ Tras la lectura directa, la estructura está vacía cuando:
 Un Excel con hojas pero sin un solo encabezado no sirve para generar nada, así que cuenta como
 sin estructura.
 
-Eso ya **no es el rechazo**: es la condición que dispara el respaldo con IA (RF-05c). El rechazo
-de RF-10 llega cuando, además, la propuesta de la IA queda vacía tras el descarte de RF-05d, o
-el respaldo está apagado, o no responde.
+Eso **no es el rechazo**, y tampoco dispara nada: el formato se acepta igual y la estructura se
+guarda vacía (RF-05c). El único rechazo después de abrir el archivo es el de RF-10, y es por no
+poder abrirlo —dañado o protegido con contraseña—, no por lo que se encuentre dentro.
 
-### La estructura que propone la IA
+### Por qué una estructura vacía es válida
 
-Tiene la **misma forma** que la leída del archivo: el `JSONB` no cambia según el origen, y eso es
-a propósito. Las funcionalidades 004, 005 y 006 consumen la estructura sin tener que saber de
-dónde salió, y nada en la base de datos lo distingue (ver más abajo).
+Porque el documento final **no se construye a partir de la estructura**: se escribe dentro del
+archivo original (RF-09), que se guarda intacto y con su hash. La estructura sirve para que la
+004 sepa por dónde empezar a preguntarle al RO; si está vacía, la 004 tiene que apoyarse en el
+archivo, pero el formato sigue siendo utilizable.
 
-En Word, una propuesta trae `nivel` como cualquier sección: la jerarquía es parte de lo que se
-le pide. Lo que la propuesta **no** puede traer es un `nombre` que no aparezca literalmente en el
-texto extraído del documento. El descarte ocurre antes de guardar, así que en la base de datos
-no queda registro de lo descartado: lo que no entró, no existió.
-
-**La base de datos no registra si la estructura la leyó el sistema o la propuso la IA.** Es una
-simplificación deliberada: ninguna funcionalidad posterior cambia de comportamiento por eso, y
-lo que el Art. IX necesita rastrear es qué estructura produjo un documento, no de dónde salió
-la lista.
+Guardar `{"clase": "word", "secciones": []}` y no `NULL` es a propósito: la forma del `JSONB` no
+cambia según cuánto se haya reconocido, así que las funcionalidades 004, 005 y 006 lo leen
+siempre igual y la lista vacía es un caso de la misma forma, no otra forma.
 
 ## Estados y transiciones de un tipo
 

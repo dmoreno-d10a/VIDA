@@ -11,18 +11,19 @@ tomó y qué se descartó. Lo que aquí se decide es el *cómo*; el *qué* está
 
 ## 1. ¿Interviene un modelo en el reconocimiento del formato?
 
-**Decisión: la lectura determinista es el camino principal; la IA solo entra como respaldo.**
+**Decisión: la lectura es determinista y no interviene ningún modelo. Lo que no se reconozca
+queda vacío, y el formato se acepta igual.**
 
-> **Revisada el 2026-11-04.** La decisión original era que no interviniera ningún modelo. La
-> aclaración de ese día la cambió: si la lectura determinista no reconoce nada, la IA propone la
-> estructura (RF-05c). Lo que sigue explica por qué la lectura determinista conserva la
-> prioridad; el respaldo está en la **decisión 11**.
+> **Revisada dos veces.** El 2026-11-04 se cambió para que la IA propusiera la estructura cuando
+> la lectura no reconociera nada (decisión 11). El **2026-11-05 esa revisión se revocó** y la
+> decisión volvió a su forma original, porque lo que la motivaba desapareció: la IA entraba a
+> rescatar los formatos que si no se rechazarían, y ahora no se rechaza ninguno.
 >
-> Lo que acotó el alcance de esa revisión fue entender **para qué** sirve la estructura: es la
-> lista de qué preguntarle al RO (funcionalidad 004), no el documento que se entrega. El
-> documento se escribe dentro del archivo original (RF-09), así que el estilo del formato se
-> conserva por construcción y la estructura no tiene que ser una copia fiel del archivo: tiene
-> que nombrar lo que hay que llenar.
+> Lo que destrabó las dos revisiones fue entender **para qué** sirve la estructura: es la lista
+> de qué preguntarle al RO (funcionalidad 004), no el documento que se entrega. El documento se
+> escribe dentro del archivo original (RF-09), que se guarda intacto, así que el estilo del
+> formato se conserva por construcción. Una estructura vacía no rompe nada: solo significa que
+> la 004 tendrá que apoyarse en el archivo en vez de en una lista ya hecha.
 
 **Por qué.** El Art. I dice que el sistema no agrega, quita, renombra ni reordena nada de la
 estructura, y el Art. II que no completa ningún dato por su cuenta. Un modelo, por bueno que
@@ -34,10 +35,9 @@ El Art. VI refuerza la conclusión desde la eficiencia: prohíbe mandar un Word 
 completo a un modelo. Si el reconocimiento usara un modelo, habría que mandarle el documento
 o un resumen de él, y un resumen ya es una interpretación.
 
-**Consecuencia de alcance.** La 002 **sí llega a LiteLLM y VORKAN**, pero solo por el camino de
-respaldo. Eso hace que el Art. V vuelva a aplicar: el modelo no puede quedar escrito en el
-código. Su configuración es parte de los parámetros del sistema (funcionalidad 007), así que
-aquí entra como variable de entorno con valor por defecto, no como una pantalla nueva.
+**Consecuencia de alcance.** La 002 **no llega a LiteLLM ni a VORKAN por ningún camino**. Eso
+deja el Art. V sin nada que regular aquí: no hay ningún modelo que elegir, ni en el código ni en
+la configuración. El primer punto del módulo que habla con un modelo es la 004.
 
 **Qué se descartó.** Que la IA reconociera **todos** los formatos, reemplazando la lectura
 determinista. Es más uniforme —un solo camino que mantener— pero ninguna carga conservaría la
@@ -231,50 +231,51 @@ riesgo.
 | `python-docx>=1.1` | Leer la estructura de `.docx` | Es la librería establecida para Word en Python; expone párrafos y estilos sin interpretar el contenido |
 | `openpyxl>=3.1` | Leer la estructura de `.xlsx` | Estándar para Excel moderno; su modo solo lectura no carga el libro completo |
 
-| `httpx>=0.28` | Hablar con LiteLLM en el paso de respaldo | Ya está en el proyecto como dependencia de pruebas de la 001; solo sube a dependencia de ejecución |
+| `python-multipart>=0.0.20` | Leer el archivo de un `multipart/form-data` | Lo exige FastAPI para recibir un archivo; la carga del formato es el único punto de la plataforma que no es JSON |
 
-Ninguna de las dos primeras llama a la red ni a un modelo: la lectura del formato sigue siendo
-local y cerrada. No entra `pandas`, ni `markitdown`, ni un SDK de proveedor —LiteLLM se habla
-por HTTP, que es lo que lo hace intercambiable (Art. V, decisión 11).
+**Ninguna llama a la red ni a un modelo**: la lectura del formato es local y cerrada. No entra
+`pandas`, ni `markitdown`, ni un cliente HTTP de ejecución: `httpx` se queda como dependencia de
+pruebas, que es donde la usa el `TestClient` de FastAPI.
 
-## 11. ¿Cómo entra la IA cuando la lectura determinista no reconoce nada?
+## 11. ¿Qué pasa cuando la lectura no reconoce nada?
 
-**Decisión: un paso de respaldo que propone la estructura, con dos cercos: se le manda texto y
-no el archivo, y se descarta lo que no esté en el documento.**
+**Decisión: el formato se acepta igual, con la estructura vacía. Ningún modelo interviene en la
+carga.**
 
-**Por qué hace falta.** La lectura determinista reconoce lo que Word marcó como título. Un
-formato que marque sus secciones con negrita o con tamaño de letra es, para una persona, un
-documento con secciones; para la librería, un archivo sin estructura. Rechazarlo era el
-comportamiento correcto mientras no hubiera alternativa, pero si esa es la convención del área,
-la plataforma no serviría para los formatos que existen (era el riesgo CHK030 de la checklist).
+**Por qué.** La lectura reconoce lo que Word marcó como título. Un formato que marque sus
+secciones con negrita o con tamaño de letra es, para una persona, un documento con secciones;
+para la librería, un archivo sin estructura. Durante un día esta decisión fue traer a la IA para
+que propusiera la estructura en ese caso. La pregunta que lo cerró fue más simple: **¿por qué hay
+que reconocer algo para poder subir el archivo?**
 
-**Los dos cercos**, que son lo que hace que esto no contradiga los artículos I y II:
+No hay que reconocerlo. El formato es la referencia con la que después se llena el documento, el
+archivo original se guarda intacto y es ahí donde se escribe (RF-09). Lo que se reconozca al
+cargar es una pista para que la 004 sepa por dónde empezar a preguntar; no reconocer nada deja a
+la 004 con más trabajo, no a la plataforma sin funcionar.
 
-1. **No se le manda el archivo, se le manda texto.** Del `.docx` se extraen los párrafos con sus
-   señales de forma —negrita, tamaño, si está solo en su línea— y del `.xlsx` los nombres de las
-   hojas y sus primeras filas. Eso respeta el Art. VI, que prohíbe mandar el documento completo,
-   y mantiene el costo acotado al esqueleto en vez del contenido.
-2. **Se descarta lo que no esté en el documento.** Cada nombre que la IA proponga se busca
-   literalmente en el texto extraído; el que no aparezca no entra (RF-05d). Es una verificación
-   mecánica, no una confianza: convierte el criterio CE-04 en algo que una prueba puede afirmar.
+**Qué desapareció al decidir eso.** El respaldo con IA existía por una sola razón: rescatar los
+formatos que si no se rechazarían. Sin el rechazo se queda sin trabajo, y se fue completo —el
+cliente de LiteLLM, el extractor del esqueleto, el descarte de RF-05d, sus cuatro variables de
+entorno, su límite de espera y 380 líneas de pruebas—. La funcionalidad 002 no tiene ninguna
+dependencia de LiteLLM.
 
-**El modelo no queda en el código** (Art. V): se configura por variable de entorno, con la
-dirección de LiteLLM y el nombre de la tarea. El respaldo además **se puede apagar**: con
-`VIDA_IA_RESPALDO=0` la funcionalidad se comporta como el diseño original y rechaza el formato,
-lo que sirve para las pruebas y para un despliegue sin acceso a VORKAN.
+**Lo que no cambió** es que la lectura sigue siendo determinista y sigue ocurriendo **una sola
+vez, al cargar** (Art. VI). Lo reconocido se guarda con la versión, y ni el detalle del tipo ni
+las funcionalidades posteriores vuelven a abrir el archivo para saber qué hay dentro.
 
 **Qué se descartó.**
 
 - **Una heurística propia sobre negritas y tamaños de letra**, sin IA. Es determinista, pero
   decide por su cuenta qué párrafo era un título, con reglas que nadie escribió en ninguna spec:
-  inventa igual, solo que sin decirlo.
+  inventa igual, solo que sin decirlo. Y ahora no hace falta: el formato se acepta de todas
+  formas.
+- **Pedirle a la IA que proponga la estructura al cargar** (la decisión del 2026-11-04). Se
+  construyó, se probó y se quitó al día siguiente. Lo que la hacía necesaria era el rechazo, no
+  la estructura.
 - **Una compuerta de confirmación**: que la versión propuesta no quedara vigente hasta que el
-  Administrador la aprobara. Se diseñó así y se quitó el mismo día. El argumento para quitarla:
-  lo que la estructura decide es qué se le pregunta al RO, y una lista mal reconocida se nota al
-  abrir una actividad y se corrige recargando el archivo, sin que ningún documento entregado
-  quede mal. Una compuerta con su estado en la base, su ruta y su pantalla era mucho aparato para
-  proteger algo que no estaba en riesgo. El Administrador revisa la estructura en el detalle del
-  tipo (RF-08), que ya existía.
-- **Resolver el respaldo en segundo plano.** Separaría esta carga del techo de 30 s, pero la
-  aclaración del 2026-11-04 fijó que todo se resuelve en la misma petición; el respaldo trabaja
-  sobre texto, así que cabe.
+  Administrador la aprobara. Se diseñó y se quitó el mismo día en que se construyó, por ser
+  mucho aparato —estado en la base, ruta y pantalla— para proteger algo que no estaba en riesgo.
+- **Rechazar también el archivo que no se puede abrir.** Eso **sí se conserva** (RF-10), y es el
+  único rechazo que ocurre después de abrir el archivo. No es un juicio sobre su estructura: un
+  `.docx` dañado o protegido con contraseña no lo va a poder llenar nadie, y descubrirlo al
+  cargarlo es mucho más amable que descubrirlo cuando un RO ya documentó una actividad.
