@@ -38,19 +38,37 @@ async function interpretar<T>(respuesta: Response): Promise<RespuestaApi<T>> {
   return { ok: false, estado: respuesta.status, detalle };
 }
 
-/** Llama al backend desde el navegador, enviando la cookie de sesión. */
+/**
+ * Llama al backend desde el navegador, enviando la cookie de sesión.
+ *
+ * El cuerpo puede ser un objeto, que viaja como JSON, o un `FormData`, que es
+ * lo que necesita la carga del formato de un tipo de documentación: es el
+ * único punto de la plataforma que no es JSON.
+ */
 export async function pedirApi<T>(
   ruta: string,
   opciones: { metodo?: string; cuerpo?: unknown } = {},
 ): Promise<RespuestaApi<T>> {
   const { metodo = "GET", cuerpo } = opciones;
+  const esFormulario =
+    typeof FormData !== "undefined" && cuerpo instanceof FormData;
 
   try {
     const respuesta = await fetch(`/api${ruta}`, {
       method: metodo,
       credentials: "same-origin",
-      headers: cuerpo ? { "Content-Type": "application/json" } : undefined,
-      body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+      // Con un FormData **no** se fija Content-Type: el navegador tiene que
+      // poner el suyo, que incluye el delimitador de las partes. Fijarlo a
+      // mano produce un cuerpo que el backend no puede separar.
+      headers:
+        cuerpo && !esFormulario
+          ? { "Content-Type": "application/json" }
+          : undefined,
+      body: esFormulario
+        ? (cuerpo as FormData)
+        : cuerpo
+          ? JSON.stringify(cuerpo)
+          : undefined,
       cache: "no-store",
     });
     return await interpretar<T>(respuesta);
