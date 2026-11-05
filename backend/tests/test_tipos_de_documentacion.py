@@ -423,3 +423,42 @@ def test_un_ro_no_puede_modificar_activar_ni_eliminar(
         f"{TIPOS}/1/activacion", json={"desactivado": True}
     ).status_code == 403
     assert cliente.delete(f"{TIPOS}/1").status_code == 403
+
+
+# --- T037, Art. X.1: ninguna ruta de administración queda sin la barrera ----
+
+
+def test_ningun_endpoint_de_administracion_deja_pasar_a_un_ro(
+    cliente: TestClient, usuarios
+) -> None:
+    """Recorre **todas** las rutas publicadas y comprueba que nieguen.
+
+    Está escrita así, y no con una lista de rutas, a propósito: una lista hay
+    que acordarse de actualizar, y el error que esta prueba vigila es
+    justamente el de agregar una ruta y olvidar la barrera. Aquí la ruta nueva
+    aparece sola en el recorrido y la prueba falla si queda abierta.
+    """
+    from app.main import app
+
+    rutas = [
+        ruta
+        for ruta in app.openapi()["paths"]
+        if ruta.startswith("/tipos-de-documentacion")
+        and not ruta.startswith("/tipos-de-documentacion-disponibles")
+    ]
+    assert len(rutas) >= 5, "el recorrido no encontró las rutas de administración"
+
+    _entrar(cliente, fic.RO)
+
+    for ruta in rutas:
+        # Los parámetros de ruta se rellenan con un identificador cualquiera:
+        # la barrera se aplica antes de buscar nada, así que da igual que no
+        # exista. Si respondiera 404 en vez de 403, la negación estaría
+        # ocurriendo demasiado tarde y filtraría qué existe.
+        concreta = ruta.replace("{tipo_id}", "1").replace("{numero}", "1")
+        for metodo in app.openapi()["paths"][ruta]:
+            respuesta = cliente.request(metodo.upper(), concreta)
+            assert respuesta.status_code == 403, (
+                f"{metodo.upper()} {concreta} respondió "
+                f"{respuesta.status_code} a un RO"
+            )
